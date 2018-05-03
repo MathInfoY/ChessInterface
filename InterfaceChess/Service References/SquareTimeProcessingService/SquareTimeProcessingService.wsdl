@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="SquareTimeProcessingService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsp:Policy wsu:Id="NetTcpBinding_ISquareTimeProcessingService_policy">
+    <wsp:ExactlyOne>
+      <wsp:All>
+        <msb:BinaryEncoding xmlns:msb="http://schemas.microsoft.com/ws/06/2004/mspolicy/netbinary1" />
+        <sp:TransportBinding xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy">
+          <wsp:Policy>
+            <sp:TransportToken>
+              <wsp:Policy>
+                <msf:WindowsTransportSecurity xmlns:msf="http://schemas.microsoft.com/ws/2006/05/framing/policy">
+                  <msf:ProtectionLevel>EncryptAndSign</msf:ProtectionLevel>
+                </msf:WindowsTransportSecurity>
+              </wsp:Policy>
+            </sp:TransportToken>
+            <sp:AlgorithmSuite>
+              <wsp:Policy>
+                <sp:Basic256 />
+              </wsp:Policy>
+            </sp:AlgorithmSuite>
+            <sp:Layout>
+              <wsp:Policy>
+                <sp:Strict />
+              </wsp:Policy>
+            </sp:Layout>
+          </wsp:Policy>
+        </sp:TransportBinding>
+        <wsaw:UsingAddressing />
+      </wsp:All>
+    </wsp:ExactlyOne>
+  </wsp:Policy>
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://localhost:8081/?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:8081/?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="ISquareTimeProcessingService_Start_InputMessage">
+    <wsdl:part name="parameters" element="tns:Start" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_Start_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StartResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_Suspend_InputMessage">
+    <wsdl:part name="parameters" element="tns:Suspend" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_Suspend_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SuspendResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_InputMessage">
+    <wsdl:part name="parameters" element="tns:isFirstCaseGreaterThanSecund" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_OutputMessage">
+    <wsdl:part name="parameters" element="tns:isFirstCaseGreaterThanSecundResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_GetValue_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetValue" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_GetValue_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetValueResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_SetFirstHit_InputMessage">
+    <wsdl:part name="parameters" element="tns:SetFirstHit" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_SetFirstHit_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SetFirstHitResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_GetFirstHit_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetFirstHit" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_GetFirstHit_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetFirstHitResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_Ping_InputMessage">
+    <wsdl:part name="parameters" element="tns:Ping" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_Ping_OutputMessage">
+    <wsdl:part name="parameters" element="tns:PingResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_NewGame_InputMessage">
+    <wsdl:part name="parameters" element="tns:NewGame" />
+  </wsdl:message>
+  <wsdl:message name="ISquareTimeProcessingService_NewGame_OutputMessage">
+    <wsdl:part name="parameters" element="tns:NewGameResponse" />
+  </wsdl:message>
+  <wsdl:portType name="ISquareTimeProcessingService">
+    <wsdl:operation name="Start">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/Start" message="tns:ISquareTimeProcessingService_Start_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/StartResponse" message="tns:ISquareTimeProcessingService_Start_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Suspend">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/Suspend" message="tns:ISquareTimeProcessingService_Suspend_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/SuspendResponse" message="tns:ISquareTimeProcessingService_Suspend_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="isFirstCaseGreaterThanSecund">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" message="tns:ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecundResponse" message="tns:ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetValue">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetValue" message="tns:ISquareTimeProcessingService_GetValue_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetValueResponse" message="tns:ISquareTimeProcessingService_GetValue_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="SetFirstHit">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit" message="tns:ISquareTimeProcessingService_SetFirstHit_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHitResponse" message="tns:ISquareTimeProcessingService_SetFirstHit_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetFirstHit">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" message="tns:ISquareTimeProcessingService_GetFirstHit_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHitResponse" message="tns:ISquareTimeProcessingService_GetFirstHit_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/Ping" message="tns:ISquareTimeProcessingService_Ping_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/PingResponse" message="tns:ISquareTimeProcessingService_Ping_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="NewGame">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/NewGame" message="tns:ISquareTimeProcessingService_NewGame_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse" message="tns:ISquareTimeProcessingService_NewGame_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_ISquareTimeProcessingService" type="tns:ISquareTimeProcessingService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Start">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Start" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Suspend">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Suspend" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="isFirstCaseGreaterThanSecund">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetValue">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetValue" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SetFirstHit">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFirstHit">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Ping" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="NewGame">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/NewGame" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="NetTcpBinding_ISquareTimeProcessingService" type="tns:ISquareTimeProcessingService">
+    <wsp:PolicyReference URI="#NetTcpBinding_ISquareTimeProcessingService_policy" />
+    <soap12:binding transport="http://schemas.microsoft.com/soap/tcp" />
+    <wsdl:operation name="Start">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Start" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Suspend">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Suspend" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="isFirstCaseGreaterThanSecund">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetValue">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetValue" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SetFirstHit">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetFirstHit">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Ping" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="NewGame">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/NewGame" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SquareTimeProcessingService">
+    <wsdl:port name="BasicHttpBinding_ISquareTimeProcessingService" binding="tns:BasicHttpBinding_ISquareTimeProcessingService">
+      <soap:address location="http://localhost:8081/SquareTimeProcessingService" />
+    </wsdl:port>
+    <wsdl:port name="NetTcpBinding_ISquareTimeProcessingService" binding="tns:NetTcpBinding_ISquareTimeProcessingService">
+      <soap12:address location="net.tcp://localhost:8090/SquareTimeProcessingService" />
+      <wsa10:EndpointReference>
+        <wsa10:Address>net.tcp://localhost:8090/SquareTimeProcessingService</wsa10:Address>
+        <Identity xmlns="http://schemas.xmlsoap.org/ws/2006/02/addressingidentity">
+          <Upn>yv.tremblay@corp.ad.cginet</Upn>
+        </Identity>
+      </wsa10:EndpointReference>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

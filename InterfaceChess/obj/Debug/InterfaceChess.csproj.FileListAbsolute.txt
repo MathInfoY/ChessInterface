@@ -1,0 +1,9 @@
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.csprojResolveAssemblyReference.cache
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.Properties.Resources.resources
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.csproj.GenerateResource.Cache
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\bin\Debug\InterfaceChess.exe.config
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\bin\Debug\InterfaceChess.exe
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\bin\Debug\InterfaceChess.pdb
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.exe
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.pdb
+C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.GlobalFile.resources

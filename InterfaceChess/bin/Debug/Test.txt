@@ -1,0 +1,18 @@
+ 
+Web Service Started !!
+ 
+*** Nouvelle Partie ***
+ 
+...-...-...-...-...-...-...-...-...-...-...-...-...-...-Depart ---> 12
+Arrivee ---> 28
+(12,28)	d4
+Depart ---> 52
+Depart ---> 55
+Test Depart Again ...
+Depart ---> 52
+Depart ---> 55
+Web Service Value  (52)	 = 	28		04-29-2018 09:43:07.241 
+Web Service Value  (55)	 = 	0		01-01-0001 12:00:00.000 
+Arrivee ---> 36
+(52,36)	d5
+...-...-...-

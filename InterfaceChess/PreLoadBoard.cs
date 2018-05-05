@@ -37,9 +37,11 @@ namespace InterfaceChess
         }
 
         // Nouvelle partie lorsq'on click sur Blanc ou Noir
-        static public int NewGame(string color)
+        static public int NewGame(byte color)
         {
             bool findMove = false;
+
+            Board.setColorBoard(color);
             Board.Reset_Echiquier();
             Board.Reset_GrapheCases();
 
@@ -47,13 +49,11 @@ namespace InterfaceChess
 
             Log.UpdateNoGame();
 
-//          Console.Beep();
-
             return (findMove == true ? 1 : 0);
         }
 
         // Mise a jour du premier coup dans le cas ou Je joue avec les Noirs
-        static private bool PlayFirstWhiteMove(string color)
+        static private bool PlayFirstWhiteMove(byte color)
         {
             bool findMove = true;
             byte Dep = 0;
@@ -61,7 +61,7 @@ namespace InterfaceChess
             String[] txtMove = null;
             Dictionary<string, int> items = null;
 
-            if (color.Equals("Noir"))
+            if (color == K.Noir)
             {
                 items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
 

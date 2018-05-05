@@ -7,3 +7,12 @@ C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\Interf
 C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.exe
 C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.pdb
 C:\Users\yv.tremblay\documents\visual studio 2013\Projects\InterfaceChess\InterfaceChess\obj\Debug\InterfaceChess.GlobalFile.resources
+C:\app\ChessInterface\InterfaceChess\bin\Debug\InterfaceChess.exe.config
+C:\app\ChessInterface\InterfaceChess\bin\Debug\InterfaceChess.exe
+C:\app\ChessInterface\InterfaceChess\bin\Debug\InterfaceChess.pdb
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.csprojResolveAssemblyReference.cache
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.Properties.Resources.resources
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.csproj.GenerateResource.Cache
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.exe
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.pdb
+C:\app\ChessInterface\InterfaceChess\obj\Debug\InterfaceChess.GlobalTask.resources

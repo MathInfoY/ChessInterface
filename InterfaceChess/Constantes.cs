@@ -13,6 +13,7 @@ namespace InterfaceChess
         public const byte AucunRoque = 0;
         public const byte Blanc = 1;
         public const byte Noir = 2;
+        public const byte NoColor = 3;
         public const byte PRoque = 100;
         public const byte GRoque = 101;
         public const byte CSelected = 65;

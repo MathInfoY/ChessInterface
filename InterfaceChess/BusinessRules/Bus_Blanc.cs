@@ -93,13 +93,18 @@ namespace InterfaceChess
             // Plusieurs coups de départ
                 if (FindMoveDep == -1)
                 {
+#if SERVICE
                     FindMoveDep = Business.findSmallerTimeWS(Departs, out caseDepart_WS);
 
                     if (FindMoveDep == 1)
                         caseDepart = caseDepart_WS;
                     else if (FindMoveDep == -1)
                         return (-1);
+#else
+                    return(-1);
+#endif
                 }
+
                 else if (FindMoveDep == 1)
                     caseDepart = Departs[0];
             }
@@ -141,9 +146,10 @@ namespace InterfaceChess
                         FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Blanc, out caseDest, out PriseEnPassant);
 
                     // Appel le Web Service des pieces
+#if SERVICE
                     if (FindMoveArr == 0)
                         FindMoveArr = Business.GetDestSquareWebService(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
-
+#endif
                     // Si un coup : Success ! 
                     else if (FindMoveArr == 1)
                     {
@@ -151,8 +157,10 @@ namespace InterfaceChess
                         EndProcessMove(caseDepart, caseDest, K.Blanc, PriseEnPassant);
                     }
                     // Plusieurs coups trouvé ou plus ont ete trouvé on appel le Web Service pour trouver le premier coup joué
+
                     else if (FindMoveArr == -1)
                     {
+#if SERVICE
                         FindMoveArr = Business.findSmallerTimeWS(Destination, out caseDest_WS);
 
                         if (FindMoveArr == 1)
@@ -169,8 +177,11 @@ namespace InterfaceChess
 
                         else if (FindMoveArr == -1)
                             return (-1);
-
+#else
+                        return (-1);
+#endif
                     }
+
                     else
                         return (0);
                 }
@@ -184,6 +195,8 @@ namespace InterfaceChess
 
 
 // Remets a zero (timestamp) la case modifiee.
+
+#if SERVICE
                 if (FindMoveArr == 1)
                 {
                     bool success;
@@ -193,10 +206,8 @@ namespace InterfaceChess
                     // *** ERREUR LE WS n'a pas detecte le coup ***
                     if (!success)
                         FindMoveArr = -1;
-#if USE_WS
-                    client_WPiece.MovePiece(caseDepart,caseDest);
-#endif
                 }
+#endif
             }
             return (FindMoveArr);
         }

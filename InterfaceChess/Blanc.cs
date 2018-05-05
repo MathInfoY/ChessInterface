@@ -12,31 +12,44 @@ namespace InterfaceChess
 
         static public void LoopBlanc()
         {
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
-            Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+            Dictionary<string, int> items = null;
             CaseActivite[] cloneActivite = null;
             String[] txtMove = null;
-            int counter_time = 0;
             byte Dep, Arr;
             byte lastDep = 0;
             byte roque = 0;
             byte lastArr = 0;
+            int counter_time = 0;
 
             short nbMoveFind = 0;
+            bool isWaitingStatus = false;
 
-            for (int counter = 0; counter < 2000; counter++)
+            while (true)
             {
                 Thread.Sleep(100);
 
                 counter_time++;
 
+                items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+
                 if (items["END"] == 1)
-                {
                     break;
-                }
-                
-                if (items["CONFIG_BOARD"] == 0)
+
+                if (items["HOLD"] == 1)
+                {
+                    // Mode Hold confirmer
+                    if (!isWaitingStatus)
+                    {
+                        isWaitingStatus = true;
+                        items["THREAD_WAITING_STATUS"] = 1;
+                    }
+                    if (counter_time%100 == 0)
+                        Log.LogText("Waiting...");
+
                     continue;
+                }
+
+                isWaitingStatus = false;
 
                 if (items["NO_COUP_B"] == items["NO_COUP_N"])
                 {
@@ -63,7 +76,7 @@ namespace InterfaceChess
                         Board.UpdateBitmap(lastArr);
 
                         // Ecrit le coup dans le fichier
-                        Log.LogCoups(txtMove.ToString(), K.Blanc, (byte)items["NO_COUP_B"], K.Player);
+                        Log.LogCoups(txtMove[0], K.Blanc, (byte)items["NO_COUP_B"], K.Player);
 
                         items["CASE_DEPART"] = Dep;
                         items["CASE_DESTINATION"] = Arr;
@@ -79,20 +92,24 @@ namespace InterfaceChess
                     }
                     else if (nbMoveFind == -1)
                     {
+#if SERVICE
+                        Log.LogText(" *** ERROR ***");
                         Business.StopGame(items["HUMAIN_COULEUR"] == K.Blanc ? K.Human : K.Player, K.Blanc, (byte)items["NO_COUP_B"]);
                         items["END"] = 1;
+#else
+                        Log.LogText("...-");
+#endif
                     }
                 }
 
                 // Time-out atteint. Le coup de l'adversaire n'a jamais été joué (configuré pour 3 min)
+/*
                 if (counter_time >= K.TimeOut)
                 {
                     items["END"] = 1;
                 }
+*/
             }
-
-            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STOPRUNNING, 0);
-            client.Suspend(true);
 
             items["END"] = 1;
         }

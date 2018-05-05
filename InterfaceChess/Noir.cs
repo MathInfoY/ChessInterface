@@ -12,6 +12,7 @@ namespace InterfaceChess
     {
         static public void LoopNoir()
         {
+            Dictionary<string, int> items = null;
             CaseActivite[] cloneActivite = null;
             String[] txtMove = null;
             byte lastDep = 0;
@@ -21,21 +22,21 @@ namespace InterfaceChess
             byte roque = 0;
             short nbMoveFind = 0;
             Boolean RegeneratedCorner = false;
-
-            Dictionary<string, int> items = null;
+          
             int counter_time = 0;
 
-            for (int count = 0; count < 2000; count++)
+            while(true)
             {
                 Thread.Sleep(100);
-                items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
 
                 counter_time++;
+
+                items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
 
                 if (items["END"] == 1)
                     break;
 
-                if (items["CONFIG_BOARD"] == 0)
+                if (items["HOLD"] == 1)
                     continue;
 
                 if (items["NO_COUP_B"] == items["NO_COUP_N"] + 1)
@@ -73,7 +74,7 @@ namespace InterfaceChess
                             UnSelectBoardCorner();
 
                         // Ecrit le coup dans le fichier
-                        Log.LogCoups(txtMove.ToString(), K.Noir, (byte)items["NO_COUP_N"], K.Player);
+                        Log.LogCoups(txtMove[0], K.Noir, (byte)items["NO_COUP_N"], K.Player);
 
                         items["CASE_DEPART"] = Dep;
                         items["CASE_DESTINATION"] = Arr;
@@ -89,17 +90,24 @@ namespace InterfaceChess
                     }
                     else if (nbMoveFind == -1)
                     {
+#if SERVICE
+                        Log.LogText(" *** ERROR ***");
                         Business.StopGame(items["HUMAIN_COULEUR"] == K.Blanc ? K.Human : K.Player, K.Blanc, (byte)items["NO_COUP_N"]);
                         items["END"] = 1;
+#else
+                         Log.LogText("...-");
+#endif
                     } 
                     
                 }
 
                 // Time-out atteint. Le coup de l'adversaire n'a jamais été joué (configuré pour 3 min)
+/*
                 if (counter_time >= K.TimeOut)
                 {
                     items["END"] = 1;
                 }
+*/
             }
 
             items["END"] = 1;

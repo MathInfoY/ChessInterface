@@ -16,11 +16,6 @@ using System.Runtime.InteropServices;
 
 namespace InterfaceChess
 {
-    static class GlobalFile
-    {
-        static public string Log = "C:\\Chess\\Interface.Log";
-    }
-
     static class GlobalTask
     {
         public static Task<bool> g_Task; 
@@ -75,20 +70,17 @@ namespace InterfaceChess
 
         public StartUp()
         {
-            // Start les Web Services aynchrone
-            GlobalTask.g_Task = Start_SquareTime_WS();
+            Log.InitializeLog();
 
+            // Start les Web Services aynchrone
+#if SERVICE
+            GlobalTask.g_Task = Start_SquareTime_WS();
+#endif
             InitializeComponent();
 
             this.KeyPreview = true;
 
             this.KeyPress += new KeyPressEventHandler(StartUp_KeyPress);
-
-//          ExternalProcess GMA_Monitor_App = new ExternalProcess();
-//          GMA_Monitor_App.Start();
-
-//          CallSquareTime_EXE();
-
         }
 
         /*****************************************************************************
@@ -107,14 +99,6 @@ namespace InterfaceChess
             {
                 MessageBox.Show("Le Web Service des Cases n'est pas demarre");
             }
-#if USE_WS
-            // Lance l'application pour scanner toutes les pieces Blanches 
-            if (!Business.Start_WebService_WP())
-            {
-                MessageBox.Show("Le Web Service des Pièces Blanches n'est pas demarre");
-                isOk = false;
-            }
-#endif
             return (isOk);
         }
 
@@ -143,49 +127,6 @@ namespace InterfaceChess
             return (isStarted);
         }
 
-        /*********************************************************************
-         * 
-         *                          Function Test
-         *      
-         *********************************************************************/
-        private void CallSquareTime_EXE()
-        {
-            string test = "C:\\Chess\\CoordonneesBoard.txt";
-
-            Process proc = Process.GetCurrentProcess();
-            //get all other (possible) running instances
-            Process[] processes = Process.GetProcessesByName(proc.ProcessName);
-
-            // Process[] all = Process.GetProcesses();
-            Process[] SquareTimeProcess = Process.GetProcessesByName("SquareTime", "CANL-5Z48K72");
-
-            if (SquareTimeProcess.Length == 1)
-            {
-                IntPtr ptrCopyData = IntPtr.Zero;
-
-                try
-                {
-                    COPYDATASTRUCT copyData = new COPYDATASTRUCT();
-                    copyData.dwData = new IntPtr(1); // Test
-                    copyData.cbData = test.Length + 1;
-                    copyData.lpData = Marshal.StringToHGlobalAnsi(test);
-
-                    // Allocate memory for the data and copy
-                    ptrCopyData = Marshal.AllocCoTaskMem(Marshal.SizeOf(copyData));
-                    Marshal.StructureToPtr(copyData, ptrCopyData, false);
-
-                    foreach (Process p in SquareTimeProcess)
-                    {
-                        SendMessage(p.MainWindowHandle, WM_COPYDATA, IntPtr.Zero, ptrCopyData);
-                    }
-                }
-                catch(Exception)
-                {
-
-                }
-            }
-        }
-
         /*********************************************************************************************************
          * 
          *      Recois les Messages de SquareTime.exe
@@ -208,13 +149,16 @@ namespace InterfaceChess
 
                         Log.Init();
 
-                        items.Add("NO_COUP_B", 0);
-                        items.Add("NO_COUP_N", 0);
-                        items.Add("HUMAIN_COULEUR", K.Blanc);
-                        items.Add("CONFIG_BOARD", 0);
+                        Log.LogText("Start Log...");
+
+                        items.Add("NO_COUP_B", 1);
+                        items.Add("NO_COUP_N", 1);
+                        items.Add("HUMAIN_COULEUR", K.NoColor);
+                        items.Add("HOLD", 1);
                         items.Add("END", 0);
                         items.Add("CASE_DEPART", 0);
                         items.Add("CASE_DESTINATION", 0);
+                        items.Add("THREAD_WAITING_STATUS", 0);
 
                         CallContext.LogicalSetData("_items", items);
 
@@ -233,6 +177,7 @@ namespace InterfaceChess
                         items["END"] = 1;
                         Thread_Blanc.Join();
                         Thread_Noir.Join();
+                        Log.LogText(Environment.NewLine + "End Log");
                         base.WndProc(ref message);
                         break;
                     }
@@ -288,56 +233,103 @@ namespace InterfaceChess
         {
             SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
             Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
-            bool boardConfigured =  items["CONFIG_BOARD"] == 1 ? true:false;
+
+            // Une seule fois = 0
+            bool isFirstGame = items["HUMAIN_COULEUR"] == K.NoColor ? true : false;
 
             if (e.KeyChar >= 48 && e.KeyChar <= 57)
             {
-//                MessageBox.Show("Form.KeyPress: '" +
-//                    e.KeyChar.ToString() + "' pressed.");
-
                 switch (e.KeyChar)
                 {
                     case (char)48:
                         break;
 
+                        // Touche 1
                     case (char)49:
-                        // 1) Envoi message vers l'application EXE : Demarre des cases vides
-                        if (!boardConfigured)
+                        // 1) Suspends les threads
+                        items["HOLD"] = 1; 
+
+                        // 2) Envoi messages vers les services : Suspend
+                        if (isFirstGame)
                         {
-                            // On demarre la partie avec les Blancs (Les applications roulent deja avec les Blancs on active le looping)
                             GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
+#if SERVICE
                             Client_SquareTime_WS.Suspend(false);
+#endif
                         }
+                        // 2) Envoi messages vers les services : Nouvelle partie
                         else
                         {
                             // On reset la partie avec les Blancs pour les 2 applications (redessine les 64 cases)
                             GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
+#if SERVICE
                             Client_SquareTime_WS.NewGame(); 
+#endif
                         }
+                        // Waiting Thread soit en mode Hold ...
+                        do
+                        {
+                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                            Thread.Sleep(50);
+                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
 
-                        // 3) Demarrage des thread Blanc et Noir
+
+                        // 3) Reset l'echiquier
+                        Master.NewGame(K.Blanc);
+
+                        // 4) Remets l'initialisation
                         items["HUMAIN_COULEUR"] = K.Blanc;
-                        Master.NewGame("Blanc");
-                        items["CONFIG_BOARD"] = 1;
+                        items["NO_COUP_B"] = 2;
+                        items["NO_COUP_N"] = 1;
+                        items["CASE_DEPART"] = 0;
+                        items["CASE_DESTINATION"] = 0;
+                        items["THREAD_WAITING_STATUS"] = 0;
+
+                        // 5) Remets en marche les threads                        
+                        items["HOLD"] = 0; 
+
                         Console.Beep();
                         break;
 
+                        // Touche 2
                     case (char)50:
-                        // 1) Envoi message vers l'application EXE
- 
-                        if (!boardConfigured)
+                        items["HOLD"] = 1;
+
+                        if (isFirstGame)
+                        {
                             GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
+#if SERVICE
+                            Client_SquareTime_WS.Suspend(false);
+#endif
+                        }
                         else
+                        {
                             GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
+#if SERVICE
+                            Client_SquareTime_WS.NewGame();
+#endif
+                        }
 
-                        // 2) Envoi message vers le Web Service
-                        Client_SquareTime_WS.Suspend(false);
+                        do
+                        {
+                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                            Thread.Sleep(50);
+                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
 
+                        Master.NewGame(K.Noir);
+
+                        // 4) Remets l'initialisation
                         items["HUMAIN_COULEUR"] = K.Noir;
-                        Master.NewGame("Noir");
-                        items["CONFIG_BOARD"] = 1;
+                        items["NO_COUP_B"] = 2;
+                        items["NO_COUP_N"] = 1;
+                        items["THREAD_WAITING_STATUS"] = 0;
 
+                        // 5) Remets en marche les threads                        
+                        items["HOLD"] = 0; 
+
+                        Console.Beep();
                         break;
+
                     case (char)52:
                     case (char)55:
                         break;
@@ -345,43 +337,12 @@ namespace InterfaceChess
                     case (char)57: // Partie Terminée click sur la touche 9 du Pad. Arrete le WS et le EXE
                         items["END"] = 1;
                         GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STOPRUNNING, 0);
+#if SERVICE
                         Client_SquareTime_WS.Suspend(true);
+#endif
                         break;
                 }
             }
-        }
-
-        private bool Test_WebServices(out byte WhichServiceFail)
-        {
-            bool isSuccess = false;
-            
-            WhichServiceFail = 0;
-
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client_Square = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
-            WhitePiecesService.WhitePiecesClient client_WPiece = new WhitePiecesService.WhitePiecesClient("BasicHttpBinding_IWhitePieces");
-
-            try
-            {
-                isSuccess = client_Square.Ping();
-            }
-            catch (Exception)
-            {
-                WhichServiceFail = 1;
-                return (false);
-            }
-
-            try
-            {
-                isSuccess = client_WPiece.Ping();
-            }
-            catch (Exception)
-            {
-                WhichServiceFail = 2;
-                return (false);
-            }
-
-
-            return (true);
         }
     }
 
@@ -407,7 +368,7 @@ namespace InterfaceChess
 
             Process proc = Process.GetCurrentProcess();
             //get all other (possible) running instances
-            Process[] processes = Process.GetProcessesByName(proc.ProcessName);
+//           Process[] processes = Process.GetProcessesByName(proc.ProcessName);
 
             // Process[] all = Process.GetProcesses();
             Process[] SquareTimeProcess = Process.GetProcessesByName("SquareTime", "CANL-5Z48K72");

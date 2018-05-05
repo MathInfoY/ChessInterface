@@ -44,12 +44,16 @@ namespace InterfaceChess
  
                 if (FindMoveDep == -1) // Toujours la meme erreur on appel le Web Service pour trouver le coup
                 {
+#if SERVICE
                     FindMoveDep = Business.findSmallerTimeWS(Departs, out caseDepart_WS);
 
                     if (FindMoveDep == 1)
                         caseDepart = caseDepart_WS;
                     else if (FindMoveDep == -1)
                         return (-1);
+#else
+                    return(-1);
+#endif
                 }
                 else if (FindMoveDep == 1)
                     caseDepart = Departs[0];
@@ -94,13 +98,13 @@ namespace InterfaceChess
                         if (FindMoveArr == 1)
                             Destination.Add(caseDest);
                     }
-
+#if SERVICE
                     // Appel le Web Service des cases
                     if (FindMoveArr == 0)
                     {
                         FindMoveArr = Business.GetDestSquareWebService(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
                     }
-
+#endif
                     // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
                     if (FindMoveArr == 0)
                     {
@@ -117,8 +121,10 @@ namespace InterfaceChess
                     }
 
                     // Si 2 coups ou plus ont ete trouves on appel le Web Service pour trouver le coup
+
                     else if (FindMoveArr == -1)
                     {
+#if SERVICE
                         FindMoveArr = Business.findSmallerTimeWS(Destination, out caseDest_WS);
 
                         if (FindMoveArr == 1)
@@ -134,7 +140,11 @@ namespace InterfaceChess
                         }
                         else if (FindMoveArr == -1)
                             return (-1);
+#else
+                        return(-1);
+#endif
                     }
+
                     else
                         return (0);
                 }
@@ -145,6 +155,7 @@ namespace InterfaceChess
                     FindMoveArr = 1;
                 }
 
+#if SERVICE
                 if (FindMoveArr == 1)
                 { 
                     bool success;
@@ -156,6 +167,7 @@ namespace InterfaceChess
                         FindMoveArr = -1;
 
                 }
+#endif
             }
 
             return (FindMoveArr);

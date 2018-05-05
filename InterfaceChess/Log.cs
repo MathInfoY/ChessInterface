@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,12 +13,28 @@ namespace InterfaceChess
     {
         private static int m_countFile = 0;
         private static uint m_waiting = 0;
+        private static string m_pathFileBoard = string.Empty;
+        private static string m_pathGameFile = string.Empty;
+        private static string m_pathPiecesFile = string.Empty;
+        private static string m_indexFile = string.Empty;
+        private static string m_Board = string.Empty;
+        private static string m_interfaceLog = string.Empty;
+ 
+        static public void InitializeLog()
+        {
+            m_pathFileBoard = ConfigurationManager.AppSettings["PathFileBoard"].ToString().Trim();
+            m_pathGameFile = ConfigurationManager.AppSettings["PathGamesFile"].ToString().Trim();
+            m_pathPiecesFile = ConfigurationManager.AppSettings["PathPiecesFile"].ToString().Trim();
+            m_Board = ConfigurationManager.AppSettings["Board"].ToString().Trim();
+            m_indexFile = ConfigurationManager.AppSettings["IndexFile"].ToString().Trim();
+            m_interfaceLog = ConfigurationManager.AppSettings["Interface"].ToString().Trim();
+        }
 
         static public void Init()
         {
             try
             {
-                File.Delete(@GlobalFile.Log);
+                File.Delete(@m_interfaceLog);
             }
             catch(Exception)
             {
@@ -27,12 +44,12 @@ namespace InterfaceChess
 
         static public int GetIndexGame()
         {
-            return(Convert.ToInt32(File.ReadAllText(@"IndexFile.txt", Encoding.ASCII)));
+            return (Convert.ToInt32(File.ReadAllText(@m_indexFile, Encoding.ASCII)));
         }
 
         static public void WriteIndexGame(int counter)
         {
-            File.WriteAllText(@"IndexFile.txt", (counter).ToString());
+            File.WriteAllText(@m_indexFile, (counter).ToString());
             m_countFile = counter;
         }
 
@@ -44,7 +61,7 @@ namespace InterfaceChess
 
             Board_xLeft = Board_yTop = Board_width = Board_Height = 0;
 
-            str = File.ReadAllText(@"C:\\Chess\\CoordonneesBoard.txt", Encoding.ASCII);
+            str = File.ReadAllText(@m_pathFileBoard, Encoding.ASCII);
 
             if (str != null && str.Length > 0)
             { 
@@ -63,14 +80,15 @@ namespace InterfaceChess
 
         static public void WriteCoordBoard(int Board_xLeft, int Board_yTop, int Board_width, int Board_Height)
         {
-            File.WriteAllText(@"C:\\Chess\\CoordonneesBoard.txt", Board_xLeft.ToString() + " " + Board_yTop.ToString() + " " + Board_width.ToString() + " " + Board_Height.ToString());
+            File.WriteAllText(@m_pathFileBoard, Board_xLeft.ToString() + " " + Board_yTop.ToString() + " " + Board_width.ToString() + " " + Board_Height.ToString());
         }
 
         static public void LogPieces(List<String[]> pieces, List<String> color, List<String> activity)
         {
+
             int noGame = GetIndexGame();
 
-            using (StreamWriter writer = new StreamWriter("C:\\Board\\Temp\\Test\\Pieces_" + noGame + "_" + noGame + ".txt"))
+            using (StreamWriter writer = new StreamWriter(m_pathPiecesFile  + noGame + "_" + noGame + ".txt"))
             {
                 for (byte i = 1; i <= 64; i++)
                 {
@@ -81,12 +99,12 @@ namespace InterfaceChess
 
         static public void LogCoups(String move, int color, byte noMove, byte WhoPlayWhite)
         {
-            using (StreamWriter writer = new StreamWriter("C:\\Board\\Temp\\Test\\Game_" + m_countFile  + ".txt", true))
+            using (StreamWriter writer = new StreamWriter(m_pathGameFile + m_countFile  + ".txt", true))
             {
                 if (color == K.Blanc)
-                    writer.Write(noMove + "\t" + move.ToString() + "\t");
+                    writer.Write(noMove.ToString() + "\t" + move);
                 else
-                    writer.WriteLine(move.ToString());
+                    writer.Write("," + move + Environment.NewLine);
             }
         }
 
@@ -96,17 +114,17 @@ namespace InterfaceChess
             {
                 if (m_waiting <= 50)
                 {
-                    File.AppendAllText(@GlobalFile.Log, txt);
+                    File.AppendAllText(@m_interfaceLog, txt);
                     m_waiting++;
                 }
                 else
                 {
-                    File.AppendAllText(@GlobalFile.Log, txt + Environment.NewLine);
+                    File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
                     m_waiting = 0;
                 }               
             }
             else 
-                File.AppendAllText(@GlobalFile.Log, txt + Environment.NewLine);
+                File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
         }
 
         static public  int GetNoFile()
@@ -132,8 +150,6 @@ namespace InterfaceChess
 
         static private void TakeScreenShotBoard()
         {
-            String filename = "C:\\Board\\Board.bmp";
-
             if (Board.isDefined())
             {
                 int x, y, w, h;
@@ -160,7 +176,7 @@ namespace InterfaceChess
 
                 try
                 {
-                    screenBmp.Save(@filename, System.Drawing.Imaging.ImageFormat.MemoryBmp);
+                    screenBmp.Save(@m_Board, System.Drawing.Imaging.ImageFormat.MemoryBmp);
                 }
                 catch
                 {

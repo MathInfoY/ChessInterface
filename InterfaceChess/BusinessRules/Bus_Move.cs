@@ -1046,16 +1046,16 @@ namespace InterfaceChess
             response = caseA;
             dtResponse = default(DateTime);
 
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
 
             try
             {
                 // Si le numero de caseA = 200 et caseB = 100 alors retourne True donc c'est la case B qui fut jouée la première
-                WS_ValueCaseA = client.GetValue(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
-                WS_ValueCaseB = client.GetValue(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
+                WS_ValueCaseA = Client_SquareTime_WS.GetValue(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
+                WS_ValueCaseB = Client_SquareTime_WS.GetValue(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
 
-                WS_FirstDTHitCaseA = client.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
-                WS_FirstDTHitCaseB = client.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
+                WS_FirstDTHitCaseA = Client_SquareTime_WS.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
+                WS_FirstDTHitCaseB = Client_SquareTime_WS.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
 
                 Log.LogText("Web Service Value " + " (" + caseA + ")\t = \t" + WS_ValueCaseA + "\t\t" + WS_FirstDTHitCaseA.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
                 Log.LogText("Web Service Value " + " (" + caseB + ")\t = \t" + WS_ValueCaseB + "\t\t" + WS_FirstDTHitCaseB.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
@@ -1233,7 +1233,7 @@ namespace InterfaceChess
         static short DoTestSquare(byte noCaseA, byte noCaseB, out int ValA, out int ValB)
         {
             short err = -1;
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
 
             ValA = 0;
             ValB = 0;
@@ -1241,8 +1241,8 @@ namespace InterfaceChess
             for (byte nbTry = 1; nbTry <= 5 && err == -1; nbTry++)
             {
                 Thread.Sleep(500);
-                ValA = client.GetValue(noCaseA);
-                ValB = client.GetValue(noCaseB);
+                ValA = Client_SquareTime_WS.GetValue(noCaseA);
+                ValB = Client_SquareTime_WS.GetValue(noCaseB);
 
                 Log.LogText("Try Again...\t(" + ValA + "," + ValB + ")");
 
@@ -1269,7 +1269,7 @@ namespace InterfaceChess
             short FindNoCase = -1;
             int valRook = 0;
             CaseActivite[] BoardLogic = Board.getCasesAvailable();
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
 
             OldestCall = 0;
 
@@ -1286,7 +1286,7 @@ namespace InterfaceChess
                             {
                                 if (ValA < ValB)
                                 {
-                                    valRook = client.GetValue(8);
+                                    valRook = Client_SquareTime_WS.GetValue(8);
 
                                     // Refresh de la case Tour s'est fait apres le Roi
                                     if (valRook > ValA)
@@ -1313,7 +1313,7 @@ namespace InterfaceChess
                                 {
                                     if (ValA < ValB)
                                     {
-                                        valRook = client.GetValue(1);
+                                        valRook = Client_SquareTime_WS.GetValue(1);
 
                                         if (valRook > ValA)
                                             FindNoCase = 1;
@@ -1338,7 +1338,7 @@ namespace InterfaceChess
                             {
                                 if (ValA < ValB)
                                 {
-                                    valRook = client.GetValue(64);
+                                    valRook = Client_SquareTime_WS.GetValue(64);
 
                                     if (valRook > ValA)
                                         FindNoCase = 1;
@@ -1364,7 +1364,7 @@ namespace InterfaceChess
                                 {
                                     if (ValA < ValB)
                                     {
-                                        valRook = client.GetValue(57);
+                                        valRook = Client_SquareTime_WS.GetValue(57);
 
                                         if (valRook > ValA)
                                             FindNoCase = 1;

@@ -26,7 +26,7 @@ namespace InterfaceChess
         public static extern IntPtr GetDesktopWindow();
     }
 
-    public class Board
+    static public class Board
     {
         static private int[] m_noCase_x; // Centre de la case
         static private int[] m_noCase_y; // Centre de la case
@@ -375,7 +375,18 @@ namespace InterfaceChess
 
         static public Bitmap getBitmap(byte noCase)
         {
-            return (m_dictGrapheCases[noCase]);
+
+            // Une exception peut se produire si on demarre subitement une nouvelle partie
+            // La liste est effacee lors du demarrage et n'est plus valide ici.
+            try
+            {
+                return (m_dictGrapheCases[noCase]);
+            }
+            catch(Exception)
+            {
+                return(null);
+            }
+            
         }
 
         static public void getPositionCase(byte noCase, out int x, out int y)

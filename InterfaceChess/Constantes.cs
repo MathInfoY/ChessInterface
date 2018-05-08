@@ -17,6 +17,7 @@ namespace InterfaceChess
         public const byte PRoque = 100;
         public const byte GRoque = 101;
         public const byte CSelected = 65;
+        public const byte isResetingGame = 99;
         public const byte Human = 200;
         public const byte Player = 201;
         public const int  TimeOut = 2000;

@@ -37,7 +37,16 @@ namespace InterfaceChess
                     break;
 
                 if (items["HOLD"] == 1)
+                {
+                    // Mode Hold confirmer
+                    items["THREAD_WAITING_STATUS"] = 1;
+
+                    if (counter_time % 100 == 0)
+                        Log.LogText("Waiting...");
+
                     continue;
+                }
+
 
                 if (items["NO_COUP_B"] == items["NO_COUP_N"] + 1)
                 {
@@ -97,7 +106,12 @@ namespace InterfaceChess
 #else
                          Log.LogText("...-");
 #endif
-                    } 
+                    }
+                    else if (nbMoveFind == K.isResetingGame)
+                    {
+                        items["HOLD"] = 1;
+                        Log.LogText("End Game");
+                    }
                     
                 }
 

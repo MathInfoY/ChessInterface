@@ -95,8 +95,8 @@ namespace InterfaceChess
 
 //                  QueueMsg.SendMessage_To_OpenWindow(string.Format("{0};{1}", Dep, Arr)); // envoie le coup Blanc à l'interface 
 
-                    Log.LogText("Mon Coup : CasesDepart   : " + Dep);
-                    Log.LogText("Mon Coup : CasesArrivee  : " + Arr);
+                    Log.LogText("Adversaire : CasesDepart   : " + Dep);
+                    Log.LogText("Adversaire : CasesArrivee  : " + Arr);
                 }
             }
             else

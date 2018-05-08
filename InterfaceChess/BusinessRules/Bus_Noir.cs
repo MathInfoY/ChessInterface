@@ -39,6 +39,12 @@ namespace InterfaceChess
             // Erreur trouve au moins 2 coups de départ ont été trouvé on re-essaie
             if (FindMoveDep == -1)
             {
+                if (Departs.Count > 5)
+                {
+                    Departs.Clear();
+                    return (K.isResetingGame); // Nouvelle partie , beaucoup de changements 
+                }
+
                 Departs.Clear();
                 FindMoveDep = Business.TestDepartAgain(lastDep, lastDest, K.Noir, out roque, Departs);
  
@@ -65,6 +71,9 @@ namespace InterfaceChess
             if (FindMoveDep == 0)
                 return (0);
 
+            else if (FindMoveDep == K.isResetingGame)
+                return (K.isResetingGame);
+
             // Case Arrivee
             else
             {
@@ -75,6 +84,8 @@ namespace InterfaceChess
                 {
                     // Set_Activities_Move est appelé dans cette fonction
                     FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                    if (FindMoveArr == K.isResetingGame)
+                        return (K.isResetingGame);
 
                     // Aucun coup trouve
                     if (FindMoveArr == 0)
@@ -82,6 +93,8 @@ namespace InterfaceChess
                         Log.LogText("Check Again ...");
                         Thread.Sleep(500);
                         FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                        if (FindMoveArr == K.isResetingGame)
+                            return (K.isResetingGame);
                     }
 
                     // Plusieurs coups trouvé : Identifier le bon.
@@ -89,6 +102,8 @@ namespace InterfaceChess
                     {
                         Destination.Clear();
                         FindMoveArr = Business.TestDestAgain(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                        if (FindMoveArr == K.isResetingGame)
+                            return (K.isResetingGame);
                     }
 
                     // Si Aucun coup : Verifie la case sélectionnée du coup précédent 

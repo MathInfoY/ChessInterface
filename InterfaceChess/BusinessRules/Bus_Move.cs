@@ -25,7 +25,9 @@ namespace InterfaceChess
 
         static public short GetDepartMovePlayer(byte lastDep, byte lastDest, byte color, out byte roque, List<byte> Departs)
         {
+            Boolean isResetingGame = false;
             Bitmap screenBmp = null;
+            Bitmap screenBmpFromList = null;
             byte caseRoi = 0;
             byte caseTour = 0;
             short findMove = 0;
@@ -35,7 +37,7 @@ namespace InterfaceChess
             CaseActivite[] BoardLogic = Board.getCasesAvailable();
 
             // Coup Depart
-            for (byte i = 1; i <= 64; i++)
+            for (byte i = 1; i <= 64 && !isResetingGame; i++)
             {
                 if (!Business.ValidateMove(i, color))
                     continue;
@@ -44,8 +46,12 @@ namespace InterfaceChess
                     continue;
 
                 screenBmp = Board.TakePictureCase(i, Convert.ToByte(ConfigurationManager.AppSettings["ZoomOutCase"].ToString().Trim()));
+                screenBmpFromList = Board.getBitmap(i);
 
-                if (!Business.CompareBitmaps((Image)screenBmp, (Image)Board.getBitmap(i)))
+                if (screenBmpFromList == null)
+                    isResetingGame = true; // Est en train de redessiner l'echiquier (nouvelle partie)
+
+                else if (!Business.CompareBitmaps(screenBmp,screenBmpFromList))
                 {
                     if (i == 1 || i == 8 || i == 57 || i == 64) caseTour = i;
                     else if (i == 5 || i == 61) caseRoi = i;
@@ -55,7 +61,10 @@ namespace InterfaceChess
 
             }
 
-            if (caseRoi > 0 && caseTour > 0)
+            if (isResetingGame)
+                findMove = K.isResetingGame;
+
+            else if (caseRoi > 0 && caseTour > 0)
             {
                 roque = Business.ValidateRoque(caseRoi, caseTour);
                 if (roque > 0)
@@ -78,10 +87,14 @@ namespace InterfaceChess
         {
             List<byte> findDestMoves = null;
             short moveFoundDest = 0; // aucun coup trouve
+            bool isResetingGame;
 
             PriseEnPassant = false;
 
-            findDestMoves = FindMovesChanged(LastDep, LastDest, CaseDepart, color, out PriseEnPassant);
+            findDestMoves = FindMovesChanged(LastDep, LastDest, CaseDepart, color, out PriseEnPassant, out isResetingGame);
+
+            if (isResetingGame)
+                return (K.isResetingGame);
 
             if (findDestMoves.Count > 1)
                 moveFoundDest = -1;
@@ -133,13 +146,17 @@ namespace InterfaceChess
             List<byte> findDestMoves = null;
             short FindMoveDest = 0;
             byte CaseArrivee = 0;
+            bool isResetingGame;
 
             PriseEnPassant = false;
 
             Log.LogText("Test Again ...");
             Thread.Sleep(timer);
 
-            findDestMoves = FindMovesChanged(LastDep, LastArr, CaseDepart, color, out PriseEnPassant);
+            findDestMoves = FindMovesChanged(LastDep, LastArr, CaseDepart, color, out PriseEnPassant, out isResetingGame);
+
+            if (isResetingGame)
+                return (K.isResetingGame);
 
             if (findDestMoves.Count == 1)
                 FindMoveDest = 1;
@@ -167,35 +184,21 @@ namespace InterfaceChess
             return (FindMoveDest);
         }
 
-        static private List<byte> FindMovesChanged(byte LastDep, byte LastArr, byte CaseDepart, byte color, out bool isPriseEnPassant)
+        static private List<byte> FindMovesChanged(byte LastDep, byte LastArr, byte CaseDepart, byte color, out bool isPriseEnPassant, out bool isResetingGame)
         {
             List<byte> findNewMoves = new List<byte>();
             Bitmap colorCaseArr = null;
             Bitmap screenBmp = null;
+            Bitmap screenBmpFromList = null;
             Boolean isFind = false;
             Boolean test = false;
+            
+            isResetingGame = false;
 
             CaseActivite[] CasesActivite = Board.getCasesAvailable();
             isPriseEnPassant = false;
 
-/*
-            List<byte> activeCases = new List<byte>();
-
-            for (byte k = 1; k <= 64; k++ )
-            {
-                if (ScanBoard.linkedCases[CaseDepart, k] == 1)
-                {
-                    activeCases.Add(k);
-                }
-            }
-  
-            foreach (byte val in activesCases)
-            {
- 
-            }
-*/
-
-            for (byte i = 1; i <= 64; i++)
+            for (byte i = 1; i <= 64 && !isResetingGame; i++)
             {
                 if (i == LastDep || i == LastArr)
                     continue;
@@ -207,8 +210,12 @@ namespace InterfaceChess
                     Log.LogText("Legal Depart = " + CaseDepart + "\t Arrivee = " + i);
 
                 screenBmp = Board.TakePictureCase(i, Convert.ToByte(ConfigurationManager.AppSettings["ZoomOutCase"].ToString().Trim()));
+                screenBmpFromList = Board.getBitmap(i);
 
-                if (!CompareBitmaps((Image)screenBmp, (Image)Board.getBitmap(i)))
+                if (screenBmpFromList == null)
+                    isResetingGame = true;
+
+                else if (!CompareBitmaps(screenBmp, screenBmpFromList))
                 {
                     colorCaseArr = Board.TakePictureCaseColor(i);
 
@@ -227,7 +234,7 @@ namespace InterfaceChess
 
             if (findNewMoves.Count == 0 && isFind == true)
             {
-                Log.LogText("Arrivee Case Vide (Err)");
+                Log.LogText("Arrivee Case Vide (Err...)");
             }
             return (findNewMoves);
         }

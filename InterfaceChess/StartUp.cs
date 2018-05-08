@@ -34,6 +34,13 @@ namespace InterfaceChess
         public static string ST_time;
     }
 
+    static class GlobalParameters_GMAHook
+    {
+        public const uint GMA_COLOR = 99;
+
+        static public string colorPiece; 
+    }
+
 
     public struct COPYDATASTRUCT
     {
@@ -60,6 +67,7 @@ namespace InterfaceChess
 
         private const int RF_TESTMESSAGE = 0xA123;
         private const int WM_COPYDATA = 0x004A;
+        private const int WM_KEYDOWN = 0x0100;
         private const int WM_ENTERIDLE = 0x0121;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -198,6 +206,22 @@ namespace InterfaceChess
                             GlobalParameters_SquareTime.ST_time = Marshal.PtrToStringUni(copyData.lpData);
                             GlobalParameters_SquareTime.ST_noCase = (int)copyData.dwData;
                         }
+                        else if ((int)copyData.dwData == GlobalParameters_GMAHook.GMA_COLOR) // Message From GmaHook App : Color
+                        {
+                            GlobalParameters_GMAHook.colorPiece = Marshal.PtrToStringAnsi(copyData.lpData);
+                            Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                            items["HOLD"] = 1;
+
+                            if (GlobalParameters_GMAHook.colorPiece.Equals("Blanc"))
+                                SetUpBoard(K.Blanc);
+                            else if (GlobalParameters_GMAHook.colorPiece.Equals("Noir"))
+                                SetUpBoard(K.Noir);
+                            else
+                                items["END"] = 1;
+
+                            items["HOLD"] = 0;
+                        }
+
                         break;
                     }
  
@@ -206,11 +230,16 @@ namespace InterfaceChess
                         base.WndProc(ref message);
                         break;
                     }
-                   
-                 default:
+
+                case WM_KEYDOWN:
                     {
                         base.WndProc(ref message);
                         break;
+                    }
+                 default:
+                    {
+                        base.WndProc(ref message);
+                        break; 
                     }                    
             }
 
@@ -244,90 +273,21 @@ namespace InterfaceChess
                     case (char)48:
                         break;
 
-                        // Touche 1
+                        // Touche 1 ************* Blancs ******************
                     case (char)49:
-                        // 1) Suspends les threads
+                        // Suspend les threads
                         items["HOLD"] = 1; 
+                        SetUpBoard(K.Blanc);
 
-                        // 2) Envoi messages vers les services : Suspend
-                        if (isFirstGame)
-                        {
-                            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
-#if SERVICE
-                            Client_SquareTime_WS.Suspend(false);
-#endif
-                        }
-                        // 2) Envoi messages vers les services : Nouvelle partie
-                        else
-                        {
-                            // On reset la partie avec les Blancs pour les 2 applications (redessine les 64 cases)
-                            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
-#if SERVICE
-                            Client_SquareTime_WS.NewGame(); 
-#endif
-                        }
-                        // Waiting Thread soit en mode Hold ...
-                        do
-                        {
-                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
-                            Thread.Sleep(50);
-                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
-
-
-                        // 3) Reset l'echiquier
-                        Master.NewGame(K.Blanc);
-
-                        // 4) Remets l'initialisation
-                        items["HUMAIN_COULEUR"] = K.Blanc;
-                        items["NO_COUP_B"] = 2;
-                        items["NO_COUP_N"] = 1;
-                        items["CASE_DEPART"] = 0;
-                        items["CASE_DESTINATION"] = 0;
-                        items["THREAD_WAITING_STATUS"] = 0;
-
-                        // 5) Remets en marche les threads                        
+                        // Active les threads                        
                         items["HOLD"] = 0; 
-
-                        Console.Beep();
                         break;
 
-                        // Touche 2
+                    // Touche 2 ************* Noirs ******************
                     case (char)50:
                         items["HOLD"] = 1;
-
-                        if (isFirstGame)
-                        {
-                            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
-#if SERVICE
-                            Client_SquareTime_WS.Suspend(false);
-#endif
-                        }
-                        else
-                        {
-                            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
-#if SERVICE
-                            Client_SquareTime_WS.NewGame();
-#endif
-                        }
-
-                        do
-                        {
-                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
-                            Thread.Sleep(50);
-                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
-
-                        Master.NewGame(K.Noir);
-
-                        // 4) Remets l'initialisation
-                        items["HUMAIN_COULEUR"] = K.Noir;
-                        items["NO_COUP_B"] = 2;
-                        items["NO_COUP_N"] = 1;
-                        items["THREAD_WAITING_STATUS"] = 0;
-
-                        // 5) Remets en marche les threads                        
+                        SetUpBoard(K.Noir);
                         items["HOLD"] = 0; 
-
-                        Console.Beep();
                         break;
 
                     case (char)52:
@@ -343,6 +303,83 @@ namespace InterfaceChess
                         break;
                 }
             }
+        }
+
+        static private bool SetUpBoard(byte HumanColor)
+        {
+            bool isFine = true;
+            Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+            bool isFirstGame = items["HUMAIN_COULEUR"] == K.NoColor ? true : false;
+
+            if (isFirstGame)
+            {
+                GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
+#if SERVICE
+                Client_SquareTime_WS.Suspend(false);
+#endif
+            }
+            // 2) Envoi messages vers les services : Nouvelle partie
+            else
+            {
+                // On reset la partie avec les Blancs pour les 2 applications (redessine les 64 cases)
+                GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
+#if SERVICE
+                Client_SquareTime_WS.NewGame(); 
+#endif
+            }
+
+            switch(HumanColor)
+            {
+                case K.Blanc :
+                    {
+                        // Waiting Thread soit en mode Hold ...
+                        do
+                        {
+                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                            Thread.Sleep(50);
+                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
+
+                        // 3) Reset l'echiquier
+                        Master.NewGame(K.Blanc);
+                        Log.LogText("Blanc : Yves");
+
+                        // 4) Remets l'initialisation
+                        items["HUMAIN_COULEUR"] = K.Blanc;
+                        items["NO_COUP_B"] = 1;
+                        items["NO_COUP_N"] = 1;
+                        items["CASE_DEPART"] = 0;
+                        items["CASE_DESTINATION"] = 0;
+                        items["THREAD_WAITING_STATUS"] = 0;
+                        break;
+                    }
+
+                case K.Noir :
+                    {
+                        do
+                        {
+                            items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                            Thread.Sleep(50);
+                        } while (items["THREAD_WAITING_STATUS"] == 0 && items["END"] == 0);
+
+                        Master.NewGame(K.Noir);
+
+                        // 4) Remets l'initialisation
+                        items["HUMAIN_COULEUR"] = K.Noir;
+                        items["NO_COUP_B"] = 2;
+                        items["NO_COUP_N"] = 1;
+                        items["THREAD_WAITING_STATUS"] = 0;
+
+                        Log.LogText("Noir : Yves");
+                        break;
+                    }
+
+                default: isFine = false;
+                    break;
+            }
+
+            Console.Beep();
+
+            return (isFine);
         }
     }
 

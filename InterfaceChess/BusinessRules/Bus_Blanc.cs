@@ -65,8 +65,8 @@ namespace InterfaceChess
           */
         static public short Process_Blanc_Player(byte lastDep, byte lastDest, out byte roque, out CaseActivite[] cloneActivite)
         {
-            short FindMoveArr = 0; // 0 => aucun coup, 1 => un coup, -1 => 2 coups trouvés et +
-            short FindMoveDep = 0; // 0 => aucun coup, 1 => un coup, -1 => 2 coups trouvés et +
+            short FindMoveArr = 0; // 0 => aucun coup, 1 => un coup, -1 => 2 coups trouvés et +, 99 = entrain de redessiner l'echiquier (nouvelle partie)
+            short FindMoveDep = 0; // 0 => aucun coup, 1 => un coup, -1 => 2 coups trouvés et +, 99 = entrain de redessiner l'echiquier (nouvelle partie)
             byte caseDepart_WS = 0;
             byte caseDepart = 0;
             byte caseDest = 0;
@@ -87,6 +87,12 @@ namespace InterfaceChess
             // Erreur trouve au moins 2 coups de départ ont été trouvé on re-essaie
             if (FindMoveDep == -1)
             {
+                if(Departs.Count > 5)
+                {
+                    Departs.Clear();
+                    return (K.isResetingGame); // Nouvelle partie , beaucoup de changements 
+                }
+
                 Departs.Clear();
                 FindMoveDep = Business.TestDepartAgain(lastDep, lastDest, K.Blanc, out roque, Departs);
 
@@ -114,17 +120,22 @@ namespace InterfaceChess
             if (FindMoveDep == 0)
                 return (0);
 
-// Case Arrivee
+            else if (FindMoveDep == K.isResetingGame)
+                return (K.isResetingGame);
+
+            // Case Arrivee
             else
             {
-// Copie l'échiquier logique avant le déplacement des pièces
+                // Copie l'échiquier logique avant le déplacement des pièces
                 cloneActivite = Board.getCloneCaseActivite();
-         
-// Tous les coups sauf le roque
+
+                // Tous les coups sauf le roque
                 if (roque == K.AucunRoque)
                 {
                     // Set_Activities_Move est appelé dans cette fonction
                     FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
+                    if (FindMoveArr == K.isResetingGame)
+                        return (K.isResetingGame);
 
                     // Aucun coup trouve
                     if (FindMoveArr == 0)
@@ -132,6 +143,8 @@ namespace InterfaceChess
                         Log.LogText("Check Again ...");
                         Thread.Sleep(500);
                         FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
+                        if (FindMoveArr == K.isResetingGame)
+                            return (K.isResetingGame);
                     }
                     // Plusieurs coups trouvé : Identifier le bon.
                     if (FindMoveArr == -1)
@@ -139,12 +152,15 @@ namespace InterfaceChess
                         Thread.Sleep(500);
                         Destination.Clear();
                         FindMoveArr = Business.TestDestAgain(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
+                        if (FindMoveArr == K.isResetingGame)
+                            return (K.isResetingGame);
                     }
 
                     // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
                     if (FindMoveArr == 0)
+                    {
                         FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Blanc, out caseDest, out PriseEnPassant);
-
+                    }
                     // Appel le Web Service des pieces
 #if SERVICE
                     if (FindMoveArr == 0)
@@ -185,8 +201,8 @@ namespace InterfaceChess
                     else
                         return (0);
                 }
-// Roque
-                else 
+                // Roque
+                else
                 {
                     EndProcessMove(roque, 0, K.Blanc, false);
                     FindMoveArr = 1;
@@ -194,7 +210,7 @@ namespace InterfaceChess
 
 
 
-// Remets a zero (timestamp) la case modifiee.
+                // Remets a zero (timestamp) la case modifiee.
 
 #if SERVICE
                 if (FindMoveArr == 1)

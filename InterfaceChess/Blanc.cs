@@ -22,7 +22,6 @@ namespace InterfaceChess
             int counter_time = 0;
 
             short nbMoveFind = 0;
-            bool isWaitingStatus = false;
 
             while (true)
             {
@@ -38,18 +37,13 @@ namespace InterfaceChess
                 if (items["HOLD"] == 1)
                 {
                     // Mode Hold confirmer
-                    if (!isWaitingStatus)
-                    {
-                        isWaitingStatus = true;
-                        items["THREAD_WAITING_STATUS"] = 1;
-                    }
+                    items["THREAD_WAITING_STATUS"] = 1;
+
                     if (counter_time%100 == 0)
                         Log.LogText("Waiting...");
 
                     continue;
                 }
-
-                isWaitingStatus = false;
 
                 if (items["NO_COUP_B"] == items["NO_COUP_N"])
                 {
@@ -100,15 +94,13 @@ namespace InterfaceChess
                         Log.LogText("...-");
 #endif
                     }
+                    else if (nbMoveFind == K.isResetingGame)
+                    {
+                        items["HOLD"] = 1; 
+                        Log.LogText("End Game");
+                    }
                 }
 
-                // Time-out atteint. Le coup de l'adversaire n'a jamais été joué (configuré pour 3 min)
-/*
-                if (counter_time >= K.TimeOut)
-                {
-                    items["END"] = 1;
-                }
-*/
             }
 
             items["END"] = 1;

@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;OFF_SERVICE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;ON_SERVICE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -63,28 +63,25 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="Tool">
+      <HintPath>..\..\..\Users\yv.tremblay\Documents\Visual Studio 2013\Projects\WebPiecesService\Tool\bin\Debug\Tool.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blanc.cs" />
-    <Compile Include="Board.cs" />
     <Compile Include="BusinessRules\Bus_Blanc.cs" />
-    <Compile Include="BusinessRules\Bus_Config.cs" />
     <Compile Include="BusinessRules\Bus_Move.cs" />
     <Compile Include="BusinessRules\Bus_Noir.cs" />
-    <Compile Include="BusinessRules\Bus_Validate.cs" />
     <Compile Include="Constantes.cs" />
-    <Compile Include="ExternalProcess.cs" />
-    <Compile Include="Function.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="PreLoadBoard.cs" />
     <Compile Include="Queue.cs" />
-    <Compile Include="ScanBoard.cs" />
-    <Compile Include="Service References\SquareTimeProcessingService\Reference.cs">
+    <Compile Include="Service References\PBlanches\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="Service References\WhitePiecesService\Reference.cs">
+    <Compile Include="Service References\SquareTimeProcessingService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
@@ -121,6 +118,13 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Service References\PBlanches\item.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\PBlanches\item1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\PBlanches\WhitePieces.wsdl" />
     <None Include="Service References\SquareTimeProcessingService\item.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -128,13 +132,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Service References\SquareTimeProcessingService\SquareTimeProcessingService.wsdl" />
-    <None Include="Service References\WhitePiecesService\item.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\WhitePiecesService\item1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\WhitePiecesService\WhitePieces.wsdl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -145,8 +142,8 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadataStorage Include="Service References\PBlanches\" />
     <WCFMetadataStorage Include="Service References\SquareTimeProcessingService\" />
-    <WCFMetadataStorage Include="Service References\WhitePiecesService\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Service References\SquareTimeProcessingService\item.disco" />
@@ -159,21 +156,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Service References\SquareTimeProcessingService\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WhitePiecesService\item.disco" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WhitePiecesService\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WhitePiecesService\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\WhitePiecesService\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
@@ -194,6 +176,21 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PBlanches\item.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PBlanches\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PBlanches\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PBlanches\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -9,7 +9,7 @@ using System.Threading;
 namespace InterfaceChess
 {
     static public class K
-    {
+    {        
         public const byte AucunRoque = 0;
         public const byte Blanc = 1;
         public const byte Noir = 2;
@@ -22,7 +22,6 @@ namespace InterfaceChess
         public const byte Player = 201;
         public const int  TimeOut = 2000;
         public const string Msg = "No Message";
-
     }
     
 }

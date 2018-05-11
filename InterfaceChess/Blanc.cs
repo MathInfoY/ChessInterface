@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
+using Tool;
 
 namespace InterfaceChess
 {
@@ -13,7 +14,7 @@ namespace InterfaceChess
         static public void LoopBlanc()
         {
             Dictionary<string, int> items = null;
-            CaseActivite[] cloneActivite = null;
+            Tool.CaseActivite[] cloneActivite = null;
             String[] txtMove = null;
             byte Dep, Arr;
             byte lastDep = 0;
@@ -60,14 +61,14 @@ namespace InterfaceChess
                         BusinessBlanc.Get_Move_Arr_Player(out Arr);
 
                         // Converti en text le coup
-                        txtMove = Business.TranslateMoveInName(Dep, Arr, roque, cloneActivite);
+                        txtMove = ToolBoard.TranslateMoveInName(Dep, Arr, roque, cloneActivite);
 
                         // Photographies les cases Depart et d'Arrivée
-                        Board.TakePictures(Dep, Arr, roque, K.Blanc);
+                        ToolBoard.TakePictures(Dep, Arr, roque, K.Blanc);
 
                         // Photographies le coup précédent (Les cases sont maintenant désélectionnées) 
-                        Board.UpdateBitmap(lastDep);
-                        Board.UpdateBitmap(lastArr);
+                        ToolBoard.UpdateBitmap(lastDep);
+                        ToolBoard.UpdateBitmap(lastArr);
 
                         // Ecrit le coup dans le fichier
                         Log.LogCoups(txtMove[0], K.Blanc, (byte)items["NO_COUP_B"], K.Player);
@@ -86,8 +87,8 @@ namespace InterfaceChess
                     }
                     else if (nbMoveFind == -1)
                     {
-#if SERVICE
-                        Log.LogText(" *** ERROR ***");
+#if ON_SERVICE
+                        Log.LogText(" *** ERROR (B) ***");
                         Business.StopGame(items["HUMAIN_COULEUR"] == K.Blanc ? K.Human : K.Player, K.Blanc, (byte)items["NO_COUP_B"]);
                         items["END"] = 1;
 #else

@@ -13,6 +13,7 @@ namespace InterfaceChess
     {
         private static int m_countFile = 0;
         private static uint m_waiting = 0;
+        private static uint m_waiting_new_game = 0; 
         private static string m_pathFileBoard = string.Empty;
         private static string m_pathGameFile = string.Empty;
         private static string m_pathPiecesFile = string.Empty;
@@ -53,31 +54,6 @@ namespace InterfaceChess
             m_countFile = counter;
         }
 
-        static public bool GetCoordBoard(out int Board_xLeft, out int Board_yTop, out int Board_width, out int Board_Height)
-        {
-            Boolean isData = false;
-            string[] words = null;
-            String str = string.Empty;
-
-            Board_xLeft = Board_yTop = Board_width = Board_Height = 0;
-
-            str = File.ReadAllText(@m_pathFileBoard, Encoding.ASCII);
-
-            if (str != null && str.Length > 0)
-            { 
-                words = str.Split(' ');
-
-                Board_xLeft = Convert.ToInt32(words[0]);
-                Board_yTop = Convert.ToInt32(words[1]);
-                Board_width = Convert.ToInt32(words[2]);
-                Board_Height = Convert.ToInt32(words[3]);
-
-                isData = true;
-            }
-
-            return (isData);
-        }
-
         static public void WriteCoordBoard(int Board_xLeft, int Board_yTop, int Board_width, int Board_Height)
         {
             File.WriteAllText(@m_pathFileBoard, Board_xLeft.ToString() + " " + Board_yTop.ToString() + " " + Board_width.ToString() + " " + Board_Height.ToString());
@@ -102,7 +78,7 @@ namespace InterfaceChess
             using (StreamWriter writer = new StreamWriter(m_pathGameFile + m_countFile  + ".txt", true))
             {
                 if (color == K.Blanc)
-                    writer.Write(noMove.ToString() + "\t" + move);
+                    writer.Write(noMove.ToString() + "." + move);
                 else
                     writer.Write("," + move + Environment.NewLine);
             }
@@ -121,68 +97,31 @@ namespace InterfaceChess
                 {
                     File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
                     m_waiting = 0;
-                }               
+                }
             }
-            else 
+            else if (txt.Equals("Waiting..."))
+            {
+                if (m_waiting_new_game == 0)
+                    File.AppendAllText(@m_interfaceLog, txt);
+                else
+                {
+                    if (m_waiting_new_game == 50)
+                        File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
+                    else
+                        File.AppendAllText(@m_interfaceLog, ".");
+                }
+                m_waiting_new_game++;
+            }
+            else
+            {
                 File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
+                m_waiting_new_game = 0;
+            }
         }
 
         static public  int GetNoFile()
         {
             return (m_countFile);
-        }
-
-        static public void PhotoBoard()
-        {
-            TakeScreenShotBoard();
-/*
-            Bitmap screenBmpCaseTest = null;
-            String filename = string.Empty;
-
-            for (byte i = 1; i <= 64; i++)
-            {
-                filename = "C:\\Board\\Case_" + i + ".bmp";
-                screenBmpCaseTest = Board.TakePictureCase(i, 1);
-                screenBmpCaseTest.Save(@filename, System.Drawing.Imaging.ImageFormat.MemoryBmp);
-            }
- */ 
-        }
-
-        static private void TakeScreenShotBoard()
-        {
-            if (Board.isDefined())
-            {
-                int x, y, w, h;
-
-                x = Board.getXLeftTop();
-                y = Board.getYLeftTop();
-                w = Board.getWidth();
-                h = Board.getHeight();
-
-                Bitmap screenBmp = new Bitmap(Board.getWidth(), Board.getHeight());
-                Graphics g = Graphics.FromImage(screenBmp);
-
-                IntPtr dc1 = API.GetDC(API.GetDesktopWindow());
-                IntPtr dc2 = g.GetHdc();
-
-                //Main drawing, copies the screen to the bitmap
-                //last number is the copy constant
-                API.BitBlt(dc2, 0, 0, Board.getWidth(), Board.getHeight(), dc1, Board.getXLeftTop(), Board.getYLeftTop(), 13369376);
-
-                //Clean up
-                API.ReleaseDC(API.GetDesktopWindow(), dc1);
-                g.ReleaseHdc(dc2);
-                g.Dispose();
-
-                try
-                {
-                    screenBmp.Save(@m_Board, System.Drawing.Imaging.ImageFormat.MemoryBmp);
-                }
-                catch
-                {
-
-                }
-            }
         }
 
         static public void UpdateNoGame()

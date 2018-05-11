@@ -11,8 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 using System.Runtime.InteropServices;
+using Tool;
 
 namespace InterfaceChess
 {
@@ -81,7 +81,7 @@ namespace InterfaceChess
             Log.InitializeLog();
 
             // Start les Web Services aynchrone
-#if SERVICE
+#if ON_SERVICE
             GlobalTask.g_Task = Start_SquareTime_WS();
 #endif
             InitializeComponent();
@@ -98,16 +98,25 @@ namespace InterfaceChess
          ******************************************************************************/ 
         static public async Task<bool> Start_SquareTime_WS()
         {
-            bool isOk = true;
-
-            isOk = await Task.Run(() => Start_ST_WS());
-
+            bool isOk_SquareTimeWebService = true;
+            bool isOk_PiecesBlanchesWebService = true;
+            
+            isOk_SquareTimeWebService = await Task.Run(() => Start_ST_WS());
+            
             // Lance l'application pour scanner toutes les cases appel le Web Service lors de la discrimination deux cases possibles
-            if (!isOk)
+            if (!isOk_SquareTimeWebService)
             {
                 MessageBox.Show("Le Web Service des Cases n'est pas demarre");
             }
-            return (isOk);
+            
+            isOk_PiecesBlanchesWebService = await Task.Run(() => Start_PB_WS());
+
+            // Lance l'application pour scanner toutes les cases appel le Web Service lors de la discrimination deux cases possibles
+            if (!isOk_PiecesBlanchesWebService)
+            {
+                MessageBox.Show("Le Web Service des Pieces Blanches n'est pas demarre");
+            }
+            return (isOk_SquareTimeWebService && isOk_PiecesBlanchesWebService);
         }
 
         static public bool Start_ST_WS()
@@ -119,22 +128,47 @@ namespace InterfaceChess
             try
             {
                 // Le WS demarre par defaut en mode suspend
-                if (Client_SquareTime_WS.Start(@pathBoardFile))
+                if (Client_SquareTime_WS.Start(@pathBoardFile,true))
                 {
-                    Log.LogText("Web Service Started !!" + Environment.NewLine);
+                    Log.LogText("Web Service SquareTime Started !!");
                 }
                 else
-                    Log.LogText("*** Web Service Error *** " + Environment.NewLine);
+                    Log.LogText("*** Web Service SquareTime Error *** ");
             }
             catch
             {
-                Log.LogText("*** Web Service Error *** " + Environment.NewLine);
+                Log.LogText("*** Web Service SquareTime Error *** ");
                 isStarted = false;
             }
 
             return (isStarted);
         }
 
+        static public bool Start_PB_WS()
+        {
+            Boolean isStarted = true;
+            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces");                                                               
+            String pathBoardFile = ConfigurationManager.AppSettings["PathFileBoard"].ToString().Trim();
+
+            try
+            {
+                // Le WS demarre par defaut en mode suspend
+                if (Client_PB.Start(@pathBoardFile, true))
+                {
+                    Log.LogText("Web Service White Pieces Started !!");
+                }
+                else
+                    Log.LogText("*** Web Service White Pieces Error *** ");
+            }
+            catch
+            {
+                Log.LogText("*** Web Service White Pieces Error *** ");
+                isStarted = false;
+            }
+
+            return (isStarted);
+        }
+        
         /*********************************************************************************************************
          * 
          *      Recois les Messages de SquareTime.exe
@@ -151,14 +185,13 @@ namespace InterfaceChess
             {
                 case 1: // WM_CREATE
                     {
-                        Dictionary<string, int> items = new Dictionary<string, int>();
-
-                        Master.CreateBoard();
-
                         Log.Init();
-
                         Log.LogText("Start Log...");
 
+                        Dictionary<string, int> items = new Dictionary<string, int>();
+
+                        ToolBoard.CreateBoard(ConfigurationManager.AppSettings["PathFileBoard"].ToString().Trim());
+                                        
                         items.Add("NO_COUP_B", 1);
                         items.Add("NO_COUP_N", 1);
                         items.Add("HUMAIN_COULEUR", K.NoColor);
@@ -182,9 +215,16 @@ namespace InterfaceChess
                 case 2: // WM_DESTROY
                     {
                         Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
+                        SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+                        PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces");  
+
                         items["END"] = 1;
                         Thread_Blanc.Join();
                         Thread_Noir.Join();
+#if ON_SERVICE
+                        Client_SquareTime_WS.Suspend(true);
+                        Client_PB.Suspend(true);
+#endif
                         Log.LogText(Environment.NewLine + "End Log");
                         base.WndProc(ref message);
                         break;
@@ -206,22 +246,6 @@ namespace InterfaceChess
                             GlobalParameters_SquareTime.ST_time = Marshal.PtrToStringUni(copyData.lpData);
                             GlobalParameters_SquareTime.ST_noCase = (int)copyData.dwData;
                         }
-                        else if ((int)copyData.dwData == GlobalParameters_GMAHook.GMA_COLOR) // Message From GmaHook App : Color
-                        {
-                            GlobalParameters_GMAHook.colorPiece = Marshal.PtrToStringAnsi(copyData.lpData);
-                            Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
-                            items["HOLD"] = 1;
-
-                            if (GlobalParameters_GMAHook.colorPiece.Equals("Blanc"))
-                                SetUpBoard(K.Blanc);
-                            else if (GlobalParameters_GMAHook.colorPiece.Equals("Noir"))
-                                SetUpBoard(K.Noir);
-                            else
-                                items["END"] = 1;
-
-                            items["HOLD"] = 0;
-                        }
-
                         break;
                     }
  
@@ -297,7 +321,7 @@ namespace InterfaceChess
                     case (char)57: // Partie Terminée click sur la touche 9 du Pad. Arrete le WS et le EXE
                         items["END"] = 1;
                         GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STOPRUNNING, 0);
-#if SERVICE
+#if ON_SERVICE
                         Client_SquareTime_WS.Suspend(true);
 #endif
                         break;
@@ -310,21 +334,26 @@ namespace InterfaceChess
             bool isFine = true;
             Dictionary<string, int> items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
             bool isFirstGame = items["HUMAIN_COULEUR"] == K.NoColor ? true : false;
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_ST = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces");
 
+            // Premiere partie  (La couleur a ete choisie)
             if (isFirstGame)
             {
                 GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_STARTRUNNING, 0);
-#if SERVICE
-                Client_SquareTime_WS.Suspend(false);
+#if ON_SERVICE
+                Client_ST.Suspend(false); // Active les threads
+                Client_PB.Suspend(false);
 #endif
             }
-            // 2) Envoi messages vers les services : Nouvelle partie
+            // Parties suivantes (La couleur a ete choisie)
             else
             {
                 // On reset la partie avec les Blancs pour les 2 applications (redessine les 64 cases)
                 GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
-#if SERVICE
-                Client_SquareTime_WS.NewGame(); 
+#if ON_SERVICE
+                Client_ST.NewGame(true); // Remets l'echiquier a l'etat original
+                Client_PB.NewGame(true);
 #endif
             }
 
@@ -399,7 +428,7 @@ namespace InterfaceChess
          *      Envoi des messages vers le programme SquareTime.exe   
          * 
          *******************************************************************/
-        public static void SendMsg_Call_SquareTime_EXE(uint msg, int noCase)
+        public static void SendMsg_Call_SquareTime_EXE(uint msg, int noCase,int mode = 0)
         {
             string buffer = noCase.ToString();
 
@@ -431,6 +460,7 @@ namespace InterfaceChess
                             break;
 
                         case GlobalParameters_SquareTime.ST_GETFIRSTHIT:
+                            buffer += "-" + mode;
                             copyData.cbData = buffer.Length + 1;
                             copyData.lpData = Marshal.StringToHGlobalAnsi(buffer);
 

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
-
+using Tool;
 
 namespace InterfaceChess
 {
@@ -37,20 +37,20 @@ namespace InterfaceChess
                 {
                     QueueMsg.GetCoordonneeBoard(msg, out x, out y);
 
-                    m_Depart_Hum = Board.getCase(x, y);
+                    m_Depart_Hum = ToolBoard.getCase(x, y);
                     m_Dest_Hum = 0;
                 }
                 else if (m_Depart_Hum > 0 && QueueMsg.isClickUp(msg))
                 {
                     QueueMsg.GetCoordonneeBoard(msg, out x, out y);
 
-                    m_Dest_Hum = Board.getCase(x, y);
+                    m_Dest_Hum = ToolBoard.getCase(x, y);
 
                     if (m_Dest_Hum == m_Depart_Hum || m_Dest_Hum == 0)
                         m_Dest_Hum = m_Depart_Hum = 0;
                 }
 
-                roque = Business.ValidateRoque(m_Depart_Hum, m_Dest_Hum);
+                roque = ToolBoard.ValidateRoque(m_Depart_Hum, m_Dest_Hum);
             }
             else
                 return (false);
@@ -76,7 +76,7 @@ namespace InterfaceChess
             List<byte> Departs = new List<byte>();
             List<byte> Destination = new List<byte>();
 #if USE_WS
-            WhitePiecesService.WhitePiecesClient client_WPiece = new WhitePiecesService.WhitePiecesClient("BasicHttpBinding_IWhitePieces");
+            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces"); 
 #endif
             cloneActivite = null;
             roque = 0;
@@ -99,7 +99,7 @@ namespace InterfaceChess
             // Plusieurs coups de départ
                 if (FindMoveDep == -1)
                 {
-#if SERVICE
+#if ON_SERVICE
                     FindMoveDep = Business.findSmallerTimeWS(Departs, out caseDepart_WS);
 
                     if (FindMoveDep == 1)
@@ -127,7 +127,7 @@ namespace InterfaceChess
             else
             {
                 // Copie l'échiquier logique avant le déplacement des pièces
-                cloneActivite = Board.getCloneCaseActivite();
+                cloneActivite = ToolBoard.getCloneCaseActivite();
 
                 // Tous les coups sauf le roque
                 if (roque == K.AucunRoque)
@@ -156,16 +156,15 @@ namespace InterfaceChess
                             return (K.isResetingGame);
                     }
 
+                    // Appel le Web Service des pieces
+#if ON_SERVICE
+                    if (FindMoveArr == 0)
+                        FindMoveArr = Business.GetDest_ST_WS(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
+#endif
                     // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
                     if (FindMoveArr == 0)
-                    {
                         FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Blanc, out caseDest, out PriseEnPassant);
-                    }
-                    // Appel le Web Service des pieces
-#if SERVICE
-                    if (FindMoveArr == 0)
-                        FindMoveArr = Business.GetDestSquareWebService(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
-#endif
+                    
                     // Si un coup : Success ! 
                     else if (FindMoveArr == 1)
                     {
@@ -176,14 +175,14 @@ namespace InterfaceChess
 
                     else if (FindMoveArr == -1)
                     {
-#if SERVICE
+#if ON_SERVICE
                         FindMoveArr = Business.findSmallerTimeWS(Destination, out caseDest_WS);
 
                         if (FindMoveArr == 1)
                         {
                             caseDest = caseDest_WS;
 
-                            if (Business.PriseEnPassant(caseDepart, caseDest_WS))
+                            if (ToolBoard.PriseEnPassant(caseDepart, caseDest_WS))
                                 PriseEnPassant = true;
                             else
                                 PriseEnPassant = false;
@@ -212,7 +211,7 @@ namespace InterfaceChess
 
                 // Remets a zero (timestamp) la case modifiee.
 
-#if SERVICE
+#if ON_SERVICE
                 if (FindMoveArr == 1)
                 {
                     bool success;

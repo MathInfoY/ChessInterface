@@ -5,6 +5,7 @@ using System.Text;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Messaging;
+using Tool;
 
 namespace InterfaceChess
 {
@@ -13,7 +14,7 @@ namespace InterfaceChess
         static public void LoopNoir()
         {
             Dictionary<string, int> items = null;
-            CaseActivite[] cloneActivite = null;
+            Tool.CaseActivite[] cloneActivite = null;
             String[] txtMove = null;
             byte lastDep = 0;
             byte lastArr = 0;
@@ -41,8 +42,8 @@ namespace InterfaceChess
                     // Mode Hold confirmer
                     items["THREAD_WAITING_STATUS"] = 1;
 
-                    if (counter_time % 100 == 0)
-                        Log.LogText("Waiting...");
+//                    if (counter_time % 100 == 0)
+//                        Log.LogText("Waiting...");
 
                     continue;
                 }
@@ -71,13 +72,13 @@ namespace InterfaceChess
                         BusinessNoir.Get_Move_Arr_Player(out Arr);
 
                         // Converti en text le coup
-                        txtMove = Business.TranslateMoveInName(Dep, Arr, roque, cloneActivite);
+                        txtMove = ToolBoard.TranslateMoveInName(Dep, Arr, roque, cloneActivite);
 
-                        Board.TakePictures(Dep, Arr, roque,K.Noir);
+                        ToolBoard.TakePictures(Dep, Arr, roque,K.Noir);
 
                         // Photographies le coup précédent (Les cases sont maintenant désélectionnées) 
-                        Board.UpdateBitmap(lastDep);
-                        Board.UpdateBitmap(lastArr);
+                        ToolBoard.UpdateBitmap(lastDep);
+                        ToolBoard.UpdateBitmap(lastArr);
 
                         if (items["NO_COUP_N"] == 0)
                             UnSelectBoardCorner();
@@ -99,8 +100,8 @@ namespace InterfaceChess
                     }
                     else if (nbMoveFind == -1)
                     {
-#if SERVICE
-                        Log.LogText(" *** ERROR ***");
+#if ON_SERVICE
+                        Log.LogText(" *** ERROR (N) ***");
                         Business.StopGame(items["HUMAIN_COULEUR"] == K.Blanc ? K.Human : K.Player, K.Blanc, (byte)items["NO_COUP_N"]);
                         items["END"] = 1;
 #else
@@ -131,15 +132,15 @@ namespace InterfaceChess
          * */
         static private void UnSelectBoardCorner()
         {
-            if (Board.getBitmap(8) == null)
+            if (ToolBoard.getBitmap(8) == null)
             {
-                Board.UpdateBitmap(8);
-                Board.UpdateColorCase(8);
+                ToolBoard.UpdateBitmap(8);
+                ToolBoard.UpdateColorCase(8);
             }
-            if (Board.getBitmap(57) == null)
+            if (ToolBoard.getBitmap(57) == null)
             {
-                Board.UpdateBitmap(57);
-                Board.UpdateColorCase(57);
+                ToolBoard.UpdateBitmap(57);
+                ToolBoard.UpdateColorCase(57);
             }
 
         }

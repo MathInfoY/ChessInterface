@@ -4,6 +4,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" name="pathFile" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="ForceLoadFile" type="xs:boolean" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -97,7 +98,9 @@
   </xs:element>
   <xs:element name="NewGame">
     <xs:complexType>
-      <xs:sequence />
+      <xs:sequence>
+        <xs:element minOccurs="0" name="isKeepRunning" type="xs:boolean" />
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="NewGameResponse">

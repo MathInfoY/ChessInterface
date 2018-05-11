@@ -11,7 +11,7 @@ using System.IO;
 
 namespace InterfaceChess
 {
-
+    
     class ExternalProcess
     {
         [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
@@ -85,4 +85,5 @@ namespace InterfaceChess
         }
 
     }
+     
 }

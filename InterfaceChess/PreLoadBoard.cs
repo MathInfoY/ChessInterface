@@ -9,41 +9,22 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Tool;
 
 namespace InterfaceChess
 {
     static public partial class Master
     {
-        // Executé une seule fois
-        static public void CreateBoard()
-        {
-            int leftCorner;
-            int rightCorner;
-            int width;
-            int height;
-
-            // Lecture de la derniere position
-            Log.GetCoordBoard(out leftCorner, out rightCorner, out width, out height);
-
-            // Doit etre executer une seule fois
-            Board.InitBoard(); 
-            Board.config_PositionBoard(leftCorner, rightCorner, width, height, 2);
-
-            // Couleur de deux cases vides consecutives afin de servir de modele pour les couleurs. 
-            Business.SetColorCaseEmpty();
-
-            // La creation se poursuit lors de l'appel NewGame
-        }
+  
 
         // Nouvelle partie lorsq'on click sur Blanc ou Noir
         static public int NewGame(byte color)
         {
             bool findMove = false;
 
-            Board.setColorBoard(color);
-            Board.Reset_Echiquier();
-            Board.Reset_GrapheCases();
+            ToolBoard.setColorBoard(color);
+            ToolBoard.Reset_Echiquier();
+            ToolBoard.Reset_GrapheCases();
 
             findMove = PlayFirstWhiteMove(color);
 
@@ -66,14 +47,14 @@ namespace InterfaceChess
                 items = (Dictionary<string, int>)CallContext.LogicalGetData("_items");
 
                 // L'adversaire a joué son premier coup.
-                findMove = Business.FirstOpponentWhiteMove(out Dep, out Arr);
+                findMove = ToolBoard.FirstOpponentWhiteMove(out Dep, out Arr);
 
                 if (!findMove)
                 {
                     for (byte tryAgain = 0; !findMove && tryAgain < 20; tryAgain++)
                     {
                         Thread.Sleep(500);
-                        findMove = Business.FirstOpponentWhiteMove(out Dep, out Arr);
+                        findMove = ToolBoard.FirstOpponentWhiteMove(out Dep, out Arr);
                     }
                 }
 
@@ -116,16 +97,16 @@ namespace InterfaceChess
             String[] txtMove = null;
 
             // Sauve les activites avant le coup joué i.e avant d'appeler EndProcessMove sinon on perd l'information
-            cloneActivite = Board.getCloneCaseActivite();
+            cloneActivite = ToolBoard.getCloneCaseActivite();
 
             // Mise a jour des pieces pour chacune des cases
             BusinessBlanc.EndProcessMove(Dep, Arr, K.Blanc, false);
 
             // Traduit le coup en Texte
-            txtMove = Business.TranslateMoveInName(Dep, Arr, 0, cloneActivite);
+            txtMove = ToolBoard.TranslateMoveInName(Dep, Arr, 0, cloneActivite);
 
             // Photographies les cases Depart et d'Arrivée
-            Board.TakePictures(Dep, Arr, 0, K.Blanc);
+            ToolBoard.TakePictures(Dep, Arr, 0, K.Blanc);
 
             return (txtMove);
 
@@ -134,15 +115,15 @@ namespace InterfaceChess
 
         static public void setColorCornerBoard()
         {
-            if (Board.getBitmap(8) == null)
+            if (ToolBoard.getBitmap(8) == null)
             {
-                Board.UpdateBitmap(8);
-                Board.UpdateColorCase(8);
+                ToolBoard.UpdateBitmap(8);
+                ToolBoard.UpdateColorCase(8);
             }
-            if (Board.getBitmap(57) == null)
+            if (ToolBoard.getBitmap(57) == null)
             {
-                Board.UpdateBitmap(57);
-                Board.UpdateColorCase(57);
+                ToolBoard.UpdateBitmap(57);
+                ToolBoard.UpdateColorCase(57);
             }
         }
 

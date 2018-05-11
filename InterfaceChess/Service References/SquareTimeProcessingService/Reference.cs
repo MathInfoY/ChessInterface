@@ -16,10 +16,10 @@ namespace InterfaceChess.SquareTimeProcessingService {
     public interface ISquareTimeProcessingService {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Start", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/StartResponse")]
-        bool Start(string pathFile);
+        bool Start(string pathFile, bool ForceLoadFile);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Start", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/StartResponse")]
-        System.Threading.Tasks.Task<bool> StartAsync(string pathFile);
+        System.Threading.Tasks.Task<bool> StartAsync(string pathFile, bool ForceLoadFile);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Suspend", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SuspendResponse")]
         void Suspend(bool run);
@@ -60,10 +60,10 @@ namespace InterfaceChess.SquareTimeProcessingService {
         System.Threading.Tasks.Task<bool> PingAsync();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/NewGame", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse")]
-        bool NewGame();
+        bool NewGame(bool isKeepRunning);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/NewGame", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse")]
-        System.Threading.Tasks.Task<bool> NewGameAsync();
+        System.Threading.Tasks.Task<bool> NewGameAsync(bool isKeepRunning);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -93,12 +93,12 @@ namespace InterfaceChess.SquareTimeProcessingService {
                 base(binding, remoteAddress) {
         }
         
-        public bool Start(string pathFile) {
-            return base.Channel.Start(pathFile);
+        public bool Start(string pathFile, bool ForceLoadFile) {
+            return base.Channel.Start(pathFile, ForceLoadFile);
         }
         
-        public System.Threading.Tasks.Task<bool> StartAsync(string pathFile) {
-            return base.Channel.StartAsync(pathFile);
+        public System.Threading.Tasks.Task<bool> StartAsync(string pathFile, bool ForceLoadFile) {
+            return base.Channel.StartAsync(pathFile, ForceLoadFile);
         }
         
         public void Suspend(bool run) {
@@ -149,12 +149,12 @@ namespace InterfaceChess.SquareTimeProcessingService {
             return base.Channel.PingAsync();
         }
         
-        public bool NewGame() {
-            return base.Channel.NewGame();
+        public bool NewGame(bool isKeepRunning) {
+            return base.Channel.NewGame(isKeepRunning);
         }
         
-        public System.Threading.Tasks.Task<bool> NewGameAsync() {
-            return base.Channel.NewGameAsync();
+        public System.Threading.Tasks.Task<bool> NewGameAsync(bool isKeepRunning) {
+            return base.Channel.NewGameAsync(isKeepRunning);
         }
     }
 }

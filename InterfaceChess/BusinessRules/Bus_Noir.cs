@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
+using Tool;
 
 namespace InterfaceChess
 {
@@ -50,7 +51,7 @@ namespace InterfaceChess
  
                 if (FindMoveDep == -1) // Toujours la meme erreur on appel le Web Service pour trouver le coup
                 {
-#if SERVICE
+#if ON_SERVICE
                     FindMoveDep = Business.findSmallerTimeWS(Departs, out caseDepart_WS);
 
                     if (FindMoveDep == 1)
@@ -77,7 +78,7 @@ namespace InterfaceChess
             // Case Arrivee
             else
             {
-                cloneActivite = Board.getCloneCaseActivite();
+                cloneActivite = ToolBoard.getCloneCaseActivite();
 
                 // Tous les coups sauf le roque
                 if (roque == K.AucunRoque)
@@ -113,12 +114,10 @@ namespace InterfaceChess
                         if (FindMoveArr == 1)
                             Destination.Add(caseDest);
                     }
-#if SERVICE
+#if ON_SERVICE
                     // Appel le Web Service des cases
                     if (FindMoveArr == 0)
-                    {
                         FindMoveArr = Business.GetDestSquareWebService(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
-                    }
 #endif
                     // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
                     if (FindMoveArr == 0)
@@ -139,14 +138,14 @@ namespace InterfaceChess
 
                     else if (FindMoveArr == -1)
                     {
-#if SERVICE
+#if ON_SERVICE
                         FindMoveArr = Business.findSmallerTimeWS(Destination, out caseDest_WS);
 
                         if (FindMoveArr == 1)
                         {
                             caseDest = caseDest_WS;
 
-                            if (Business.PriseEnPassant(caseDepart, caseDest_WS))
+                            if (ToolBoard.PriseEnPassant(caseDepart, caseDest_WS))
                                 PriseEnPassant = true;
                             else
                                 PriseEnPassant = false;
@@ -170,7 +169,7 @@ namespace InterfaceChess
                     FindMoveArr = 1;
                 }
 
-#if SERVICE
+#if ON_SERVICE
                 if (FindMoveArr == 1)
                 { 
                     bool success;

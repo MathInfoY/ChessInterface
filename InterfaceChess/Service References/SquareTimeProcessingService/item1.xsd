@@ -4,15 +4,12 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" name="pathFile" nillable="true" type="xs:string" />
-        <xs:element minOccurs="0" name="ForceLoadFile" type="xs:boolean" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="StartResponse">
     <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="StartResult" type="xs:boolean" />
-      </xs:sequence>
+      <xs:sequence />
     </xs:complexType>
   </xs:element>
   <xs:element name="Suspend">
@@ -27,7 +24,7 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
-  <xs:element name="isFirstCaseGreaterThanSecund">
+  <xs:element name="isFirstLTSecund">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" name="FirstCase" type="xs:unsignedByte" />
@@ -35,24 +32,10 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="isFirstCaseGreaterThanSecundResponse">
+  <xs:element name="isFirstLTSecundResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" name="isFirstCaseGreaterThanSecundResult" type="xs:boolean" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetValue">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="noCase" type="xs:unsignedByte" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="GetValueResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="GetValueResult" type="xs:int" />
+        <xs:element minOccurs="0" name="isFirstLTSecundResult" type="xs:boolean" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -84,23 +67,9 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Ping">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PingResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="PingResult" type="xs:boolean" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="NewGame">
     <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" name="isKeepRunning" type="xs:boolean" />
-      </xs:sequence>
+      <xs:sequence />
     </xs:complexType>
   </xs:element>
   <xs:element name="NewGameResponse">

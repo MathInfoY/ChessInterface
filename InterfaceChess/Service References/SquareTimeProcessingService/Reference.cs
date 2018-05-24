@@ -16,10 +16,10 @@ namespace InterfaceChess.SquareTimeProcessingService {
     public interface ISquareTimeProcessingService {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Start", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/StartResponse")]
-        bool Start(string pathFile, bool ForceLoadFile);
+        void Start(string pathFile);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Start", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/StartResponse")]
-        System.Threading.Tasks.Task<bool> StartAsync(string pathFile, bool ForceLoadFile);
+        System.Threading.Tasks.Task StartAsync(string pathFile);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Suspend", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SuspendResponse")]
         void Suspend(bool run);
@@ -27,19 +27,11 @@ namespace InterfaceChess.SquareTimeProcessingService {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Suspend", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SuspendResponse")]
         System.Threading.Tasks.Task SuspendAsync(bool run);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecundRespo" +
-            "nse")]
-        bool isFirstCaseGreaterThanSecund(byte FirstCase, byte SecundCase);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecund", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecundResponse")]
+        bool isFirstLTSecund(byte FirstCase, byte SecundCase);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecundRespo" +
-            "nse")]
-        System.Threading.Tasks.Task<bool> isFirstCaseGreaterThanSecundAsync(byte FirstCase, byte SecundCase);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/GetValue", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/GetValueResponse")]
-        int GetValue(byte noCase);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/GetValue", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/GetValueResponse")]
-        System.Threading.Tasks.Task<int> GetValueAsync(byte noCase);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecund", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecundResponse")]
+        System.Threading.Tasks.Task<bool> isFirstLTSecundAsync(byte FirstCase, byte SecundCase);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SetFirstHitResponse")]
         bool SetFirstHit(byte noCase);
@@ -53,17 +45,11 @@ namespace InterfaceChess.SquareTimeProcessingService {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHitResponse")]
         System.Threading.Tasks.Task<System.DateTime> GetFirstHitAsync(byte nocase);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Ping", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/PingResponse")]
-        bool Ping();
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/Ping", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/PingResponse")]
-        System.Threading.Tasks.Task<bool> PingAsync();
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/NewGame", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse")]
+        bool NewGame();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/NewGame", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse")]
-        bool NewGame(bool isKeepRunning);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/NewGame", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/NewGameResponse")]
-        System.Threading.Tasks.Task<bool> NewGameAsync(bool isKeepRunning);
+        System.Threading.Tasks.Task<bool> NewGameAsync();
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -93,12 +79,12 @@ namespace InterfaceChess.SquareTimeProcessingService {
                 base(binding, remoteAddress) {
         }
         
-        public bool Start(string pathFile, bool ForceLoadFile) {
-            return base.Channel.Start(pathFile, ForceLoadFile);
+        public void Start(string pathFile) {
+            base.Channel.Start(pathFile);
         }
         
-        public System.Threading.Tasks.Task<bool> StartAsync(string pathFile, bool ForceLoadFile) {
-            return base.Channel.StartAsync(pathFile, ForceLoadFile);
+        public System.Threading.Tasks.Task StartAsync(string pathFile) {
+            return base.Channel.StartAsync(pathFile);
         }
         
         public void Suspend(bool run) {
@@ -109,20 +95,12 @@ namespace InterfaceChess.SquareTimeProcessingService {
             return base.Channel.SuspendAsync(run);
         }
         
-        public bool isFirstCaseGreaterThanSecund(byte FirstCase, byte SecundCase) {
-            return base.Channel.isFirstCaseGreaterThanSecund(FirstCase, SecundCase);
+        public bool isFirstLTSecund(byte FirstCase, byte SecundCase) {
+            return base.Channel.isFirstLTSecund(FirstCase, SecundCase);
         }
         
-        public System.Threading.Tasks.Task<bool> isFirstCaseGreaterThanSecundAsync(byte FirstCase, byte SecundCase) {
-            return base.Channel.isFirstCaseGreaterThanSecundAsync(FirstCase, SecundCase);
-        }
-        
-        public int GetValue(byte noCase) {
-            return base.Channel.GetValue(noCase);
-        }
-        
-        public System.Threading.Tasks.Task<int> GetValueAsync(byte noCase) {
-            return base.Channel.GetValueAsync(noCase);
+        public System.Threading.Tasks.Task<bool> isFirstLTSecundAsync(byte FirstCase, byte SecundCase) {
+            return base.Channel.isFirstLTSecundAsync(FirstCase, SecundCase);
         }
         
         public bool SetFirstHit(byte noCase) {
@@ -141,20 +119,12 @@ namespace InterfaceChess.SquareTimeProcessingService {
             return base.Channel.GetFirstHitAsync(nocase);
         }
         
-        public bool Ping() {
-            return base.Channel.Ping();
+        public bool NewGame() {
+            return base.Channel.NewGame();
         }
         
-        public System.Threading.Tasks.Task<bool> PingAsync() {
-            return base.Channel.PingAsync();
-        }
-        
-        public bool NewGame(bool isKeepRunning) {
-            return base.Channel.NewGame(isKeepRunning);
-        }
-        
-        public System.Threading.Tasks.Task<bool> NewGameAsync(bool isKeepRunning) {
-            return base.Channel.NewGameAsync(isKeepRunning);
+        public System.Threading.Tasks.Task<bool> NewGameAsync() {
+            return base.Channel.NewGameAsync();
         }
     }
 }

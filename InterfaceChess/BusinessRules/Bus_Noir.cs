@@ -20,16 +20,23 @@ namespace InterfaceChess
 
         static public short Process_Noir_Player(byte lastDep, byte lastDest, out byte roque,out CaseActivite[] cloneActivite)
         {
+            
             short FindMoveArr = 0;
             short FindMoveDep = 0;
             byte caseDepart = 0;
             byte caseDest = 0;
-            byte caseDepart_WS = 0;
-            byte caseDest_WS = 0;
+            byte caseDepart_TC = 0;
+            byte caseDepart_PN = 0;
+            byte caseDest_TC = 0;
+            byte caseDest_PB = 0;
+
             bool PriseEnPassant = false;
             List<byte> Departs = new List<byte>();
             List<byte> Destination = new List<byte>();
-//          WhitePiecesService.WhitePiecesClient client = new WhitePiecesService.WhitePiecesClient("BasicHttpBinding_IWhitePieces");
+
+            DateTime LowestTime_TC = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite toute les cases 
+            DateTime LowestTime_PB = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite seulement les Pieces Blanches
+            DateTime LowestTime_PN = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite seulement les Pieces Blanches
 
             cloneActivite = null;
             roque = 0;
@@ -51,16 +58,18 @@ namespace InterfaceChess
  
                 if (FindMoveDep == -1) // Toujours la meme erreur on appel le Web Service pour trouver le coup
                 {
-#if ON_SERVICE
-                    FindMoveDep = Business.findSmallerTimeWS(Departs, out caseDepart_WS);
-
-                    if (FindMoveDep == 1)
-                        caseDepart = caseDepart_WS;
-                    else if (FindMoveDep == -1)
-                        return (-1);
-#else
-                    return(-1);
+#if SERVICE_TC
+                    caseDepart_TC = Business.FindOlderMove_TC_WS(Departs, out LowestTime_TC);
 #endif
+
+#if SERVICE_PN
+                    caseDepart_PN = Business.FindOlderMove_PB_WS(Departs, out LowestTime_PN);
+#endif
+                    if (caseDepart_TC > 0 || caseDepart_PN > 0)
+                        caseDepart = Business.Compare(caseDepart_TC, caseDepart_PN, LowestTime_TC, LowestTime_PN);
+                    else
+                        return (-1);
+
                 }
                 else if (FindMoveDep == 1)
                     caseDepart = Departs[0];
@@ -114,10 +123,10 @@ namespace InterfaceChess
                         if (FindMoveArr == 1)
                             Destination.Add(caseDest);
                     }
-#if ON_SERVICE
+#if SERVICE_TC
                     // Appel le Web Service des cases
                     if (FindMoveArr == 0)
-                        FindMoveArr = Business.GetDestSquareWebService(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                        FindMoveArr = Business.GetDest_TC_WS(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
 #endif
                     // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
                     if (FindMoveArr == 0)
@@ -138,25 +147,29 @@ namespace InterfaceChess
 
                     else if (FindMoveArr == -1)
                     {
-#if ON_SERVICE
-                        FindMoveArr = Business.findSmallerTimeWS(Destination, out caseDest_WS);
-
-                        if (FindMoveArr == 1)
+#if SERVICE_TC
+                        caseDest_TC = Business.FindOlderMove_TC_WS(Destination, out LowestTime_TC);
+                        if (caseDest_TC == 0)
                         {
-                            caseDest = caseDest_WS;
-
-                            if (ToolBoard.PriseEnPassant(caseDepart, caseDest_WS))
-                                PriseEnPassant = true;
-                            else
-                                PriseEnPassant = false;
-
-                            EndProcessMove(caseDepart, caseDest_WS, K.Noir, PriseEnPassant);
-                        }
-                        else if (FindMoveArr == -1)
+                            Log.LogText(" *** ABNORMAL ERROR ARRIVEE *** ");
                             return (-1);
-#else
-                        return(-1);
+                        }
+                        caseDest = caseDest_TC;
 #endif
+
+#if SERVICE_PB
+                        caseDest_PB = Business.FindOlderMove_PB_WS(Destination, out LowestTime_PB);
+                        caseDest = caseDest_PB;
+#endif
+
+                        if (caseDest_TC > 0 || caseDest_PB > 0)
+                        {
+                            caseDest = Business.Compare(caseDest_TC, caseDest_PB, LowestTime_TC, LowestTime_PB);
+                            PriseEnPassant = Business.PriseEnPassant(caseDepart, caseDest);
+                            EndProcessMove(caseDepart, caseDest, K.Blanc, PriseEnPassant);
+                         }
+                         else
+                           return (-1);
                     }
 
                     else
@@ -169,22 +182,26 @@ namespace InterfaceChess
                     FindMoveArr = 1;
                 }
 
-#if ON_SERVICE
                 if (FindMoveArr == 1)
-                { 
+                {
+#if SERVICE_TC
                     bool success;
 
-                    success = Business.UpdateSquareWebService(caseDepart, caseDest, roque, PriseEnPassant, K.Noir);
+                    success = Business.MovePiece_TC_WS(caseDepart, caseDest, roque, PriseEnPassant, K.Noir);
 
                     // *** ERREUR LE WS n'a pas detecte le coup ***
                     if (!success)
                         FindMoveArr = -1;
-
-                }
 #endif
+                }
             }
 
             return (FindMoveArr);
+             
+             
+
+
+
         }
 
         static private void EndProcessMove(byte caseDepart, byte caseDest, byte color, bool PriseEnPassant)

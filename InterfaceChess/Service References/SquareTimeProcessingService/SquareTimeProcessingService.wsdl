@@ -47,17 +47,11 @@
   <wsdl:message name="ISquareTimeProcessingService_Suspend_OutputMessage">
     <wsdl:part name="parameters" element="tns:SuspendResponse" />
   </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_InputMessage">
-    <wsdl:part name="parameters" element="tns:isFirstCaseGreaterThanSecund" />
+  <wsdl:message name="ISquareTimeProcessingService_isFirstLTSecund_InputMessage">
+    <wsdl:part name="parameters" element="tns:isFirstLTSecund" />
   </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_OutputMessage">
-    <wsdl:part name="parameters" element="tns:isFirstCaseGreaterThanSecundResponse" />
-  </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_GetValue_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetValue" />
-  </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_GetValue_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetValueResponse" />
+  <wsdl:message name="ISquareTimeProcessingService_isFirstLTSecund_OutputMessage">
+    <wsdl:part name="parameters" element="tns:isFirstLTSecundResponse" />
   </wsdl:message>
   <wsdl:message name="ISquareTimeProcessingService_SetFirstHit_InputMessage">
     <wsdl:part name="parameters" element="tns:SetFirstHit" />
@@ -70,12 +64,6 @@
   </wsdl:message>
   <wsdl:message name="ISquareTimeProcessingService_GetFirstHit_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetFirstHitResponse" />
-  </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_Ping_InputMessage">
-    <wsdl:part name="parameters" element="tns:Ping" />
-  </wsdl:message>
-  <wsdl:message name="ISquareTimeProcessingService_Ping_OutputMessage">
-    <wsdl:part name="parameters" element="tns:PingResponse" />
   </wsdl:message>
   <wsdl:message name="ISquareTimeProcessingService_NewGame_InputMessage">
     <wsdl:part name="parameters" element="tns:NewGame" />
@@ -92,13 +80,9 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/Suspend" message="tns:ISquareTimeProcessingService_Suspend_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/SuspendResponse" message="tns:ISquareTimeProcessingService_Suspend_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="isFirstCaseGreaterThanSecund">
-      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" message="tns:ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecundResponse" message="tns:ISquareTimeProcessingService_isFirstCaseGreaterThanSecund_OutputMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="GetValue">
-      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetValue" message="tns:ISquareTimeProcessingService_GetValue_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetValueResponse" message="tns:ISquareTimeProcessingService_GetValue_OutputMessage" />
+    <wsdl:operation name="isFirstLTSecund">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecund" message="tns:ISquareTimeProcessingService_isFirstLTSecund_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecundResponse" message="tns:ISquareTimeProcessingService_isFirstLTSecund_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="SetFirstHit">
       <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit" message="tns:ISquareTimeProcessingService_SetFirstHit_InputMessage" />
@@ -107,10 +91,6 @@
     <wsdl:operation name="GetFirstHit">
       <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" message="tns:ISquareTimeProcessingService_GetFirstHit_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHitResponse" message="tns:ISquareTimeProcessingService_GetFirstHit_OutputMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="Ping">
-      <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/Ping" message="tns:ISquareTimeProcessingService_Ping_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/PingResponse" message="tns:ISquareTimeProcessingService_Ping_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="NewGame">
       <wsdl:input wsaw:Action="http://tempuri.org/ISquareTimeProcessingService/NewGame" message="tns:ISquareTimeProcessingService_NewGame_InputMessage" />
@@ -137,17 +117,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="isFirstCaseGreaterThanSecund">
-      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="GetValue">
-      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetValue" style="document" />
+    <wsdl:operation name="isFirstLTSecund">
+      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecund" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -166,15 +137,6 @@
     </wsdl:operation>
     <wsdl:operation name="GetFirstHit">
       <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="Ping">
-      <soap:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Ping" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -213,17 +175,8 @@
         <soap12:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="isFirstCaseGreaterThanSecund">
-      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstCaseGreaterThanSecund" style="document" />
-      <wsdl:input>
-        <soap12:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap12:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="GetValue">
-      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetValue" style="document" />
+    <wsdl:operation name="isFirstLTSecund">
+      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/isFirstLTSecund" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>
@@ -242,15 +195,6 @@
     </wsdl:operation>
     <wsdl:operation name="GetFirstHit">
       <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit" style="document" />
-      <wsdl:input>
-        <soap12:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap12:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="Ping">
-      <soap12:operation soapAction="http://tempuri.org/ISquareTimeProcessingService/Ping" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>
@@ -277,7 +221,7 @@
       <wsa10:EndpointReference>
         <wsa10:Address>net.tcp://localhost:8090/SquareTimeProcessingService</wsa10:Address>
         <Identity xmlns="http://schemas.xmlsoap.org/ws/2006/02/addressingidentity">
-          <Upn>yv.tremblay@corp.ad.cginet</Upn>
+          <Upn>CGI\yv.tremblay</Upn>
         </Identity>
       </wsa10:EndpointReference>
     </wsdl:port>

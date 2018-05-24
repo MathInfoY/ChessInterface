@@ -40,7 +40,7 @@ namespace InterfaceChess
                 if (items["HOLD"] == 1)
                 {
                     // Mode Hold confirmer
-                    items["THREAD_WAITING_STATUS"] = 1;
+                    items["THREAD_WAITING_TCATUS"] = 1;
 
 //                    if (counter_time % 100 == 0)
 //                        Log.LogText("Waiting...");
@@ -77,11 +77,10 @@ namespace InterfaceChess
                         ToolBoard.TakePictures(Dep, Arr, roque,K.Noir);
 
                         // Photographies le coup précédent (Les cases sont maintenant désélectionnées) 
-                        ToolBoard.UpdateBitmap(lastDep);
-                        ToolBoard.UpdateBitmap(lastArr);
+                        if (Business.isSquareStillEmpty(lastDep))
+                            ToolBoard.UpdateBitmap(lastDep);
 
-                        if (items["NO_COUP_N"] == 0)
-                            UnSelectBoardCorner();
+                        ToolBoard.UpdateBitmap(lastArr);
 
                         // Ecrit le coup dans le fichier
                         Log.LogCoups(txtMove[0], K.Noir, (byte)items["NO_COUP_N"], K.Player);
@@ -89,8 +88,6 @@ namespace InterfaceChess
                         items["CASE_DEPART"] = Dep;
                         items["CASE_DESTINATION"] = Arr;
                         items["NO_COUP_N"]++;
-
-//                      QueueMsg.SendMessage_To_OpenWindow(string.Format("{0};{1}", Dep, Arr)); // envoie le coup Noir à l'interface 
 
                         Log.LogText("(" + Dep + "," + Arr + ")" + "\t" + txtMove[0]);
                     }

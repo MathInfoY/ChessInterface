@@ -38,7 +38,7 @@ namespace InterfaceChess
                 if (items["HOLD"] == 1)
                 {
                     // Mode Hold confirmer
-                    items["THREAD_WAITING_STATUS"] = 1;
+                    items["THREAD_WAITING_TCATUS"] = 1;
 
                     if (counter_time%100 == 0)
                         Log.LogText("Waiting...");
@@ -67,8 +67,19 @@ namespace InterfaceChess
                         ToolBoard.TakePictures(Dep, Arr, roque, K.Blanc);
 
                         // Photographies le coup précédent (Les cases sont maintenant désélectionnées) 
-                        ToolBoard.UpdateBitmap(lastDep);
+
+                        // Si un coup noir a ete jouee presque simultanement que le coup Blanc, il est possible que 
+                        // le coup Blanc n'a pas ete complete avant que le coup Noir soit jouee sur la case de depart.
+                        // Exemple ... 2.c4 g6 4.Cc3,Fg7. Le coup actuel est Cc3 et le coup precedent est 
+                        // LastDep = g7 
+                        // LastArr = g6
+                        // Le fou est Presentment en g7 au lieu d'une case vide
+
+                        if (Business.isSquareStillEmpty(lastDep))
+                            ToolBoard.UpdateBitmap(lastDep);
+
                         ToolBoard.UpdateBitmap(lastArr);
+
 
                         // Ecrit le coup dans le fichier
                         Log.LogCoups(txtMove[0], K.Blanc, (byte)items["NO_COUP_B"], K.Player);

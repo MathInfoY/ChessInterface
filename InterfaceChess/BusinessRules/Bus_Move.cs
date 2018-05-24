@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Data;
 using Tool;
 
 namespace InterfaceChess
@@ -46,13 +45,13 @@ namespace InterfaceChess
                 if (i == lastDep || i == lastDest)
                     continue;
 
-                screenBmp = ToolBoard.TakePictureCase(i, Convert.ToByte(ConfigurationManager.AppSettings["ZoomOutCase"].ToString().Trim()));
+                screenBmp = ToolBoard.TakePictureCase(i);
                 screenBmpFromList = ToolBoard.getBitmap(i);
 
                 if (screenBmpFromList == null)
                     isResetingGame = true; // Est en train de redessiner l'echiquier (nouvelle partie)
 
-                else if (!ToolBoard.CompareBitmaps(screenBmp, screenBmpFromList))
+                else if (!ToolBoard.CompareBitmaps((Image)screenBmp, (Image)screenBmpFromList))
                 {
                     if (i == 1 || i == 8 || i == 57 || i == 64) caseTour = i;
                     else if (i == 5 || i == 61) caseRoi = i;
@@ -108,14 +107,14 @@ namespace InterfaceChess
             return (moveFoundDest);
         }
 
-        static public short GetDest_ST_WS(byte LastDep, byte LastDest, byte CaseDepart, byte color, List<byte> DestMoves, out bool PriseEnPassant)
+        static public short GetDest_TC_WS(byte LastDep, byte LastDest, byte CaseDepart, byte color, List<byte> DestMoves, out bool PriseEnPassant)
         {
             List<byte> findDestMoves = null;
             short moveFoundDest = 0; // aucun coup trouve
 
             PriseEnPassant = false;
 
-            findDestMoves = FindMoves_ST_WS(LastDep, LastDest, CaseDepart, color, out PriseEnPassant);
+            findDestMoves = FindMoves_TC_WS(LastDep, LastDest, CaseDepart, color, out PriseEnPassant);
 
             if (findDestMoves.Count > 1)
                 moveFoundDest = -1;
@@ -210,6 +209,9 @@ namespace InterfaceChess
                 if (test)
                     Log.LogText("Legal Depart = " + CaseDepart + "\t Arrivee = " + i);
 
+//                if (CaseDepart > 45)
+//                    ToolBoard.PhotoBoard(i);
+
                 screenBmp = ToolBoard.TakePictureCase(i, Convert.ToByte(ConfigurationManager.AppSettings["ZoomOutCase"].ToString().Trim()));
                 screenBmpFromList = ToolBoard.getBitmap(i);
 
@@ -240,11 +242,11 @@ namespace InterfaceChess
             return (findNewMoves);
         }
 
-        static private List<byte> FindMoves_ST_WS(byte LastDep, byte LastArr, byte CaseDepart, byte color, out bool isPriseEnPassant)
+        static private List<byte> FindMoves_TC_WS(byte LastDep, byte LastArr, byte CaseDepart, byte color, out bool isPriseEnPassant)
         {
             List<byte> findNewMoves = new List<byte>();
 
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_TC = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
 
             CaseActivite[] CasesActivite = ToolBoard.getCasesAvailable();
             isPriseEnPassant = false;
@@ -257,9 +259,9 @@ namespace InterfaceChess
                 if (!ToolBoard.LegalMove(CasesActivite, CaseDepart, i, color))
                     continue;
 
-                if (client.GetFirstHit(i) != default(DateTime))
+                if (Client_TC.GetFirstHit(i) != default(DateTime))
                 {
-                    Log.LogText("WPService Arrivee ---> " + i);
+                    Log.LogText("Square Time Service Arrivee ---> " + i);
 
                     if (ToolBoard.PriseEnPassant(CaseDepart, i))
                         isPriseEnPassant = true;
@@ -332,60 +334,39 @@ namespace InterfaceChess
         }
 
  
- 
-
-
-
-
-
- 
         static public void StopGame(byte WhoPlayWhite,byte color_move, byte noMove)
         {
             Log.LogCoups("** ERR ***", color_move, noMove, WhoPlayWhite);
         }
 
-  
-
-
-  
-
-        /*
-         * Retourne la case qui fut refraichit la première fois entre caseA et la caseB.
-         * Peut avoir jusqu'a 3 coups en traitement
-         * */
-        static public short findSmallerTimeWS(List<byte> Cases, out byte response)
+        static public byte FindOlderMove_TC_WS(List<byte> Cases, out DateTime SmallerTime_TC)
         {
-            short FindMove = 1;
-            byte ChessBoardColorDown = 0;
-            byte caseX = 0;
-            byte caseOther = 0;
-//            byte 6rehj2responseWhitePiece = 0;
-            DateTime SmallerTime = default(DateTime);
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_TC = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            DateTime dt;
+            byte Case_TC = 0;
 
-            response = 0;
+            SmallerTime_TC = default(DateTime);
 
-            // Position des couleurs des pieces sur Echiquier : Les Blancs sont en bas ou en haut
-            ChessBoardColorDown = ToolBoard.getColorBoard();
+            byte ColorBelow  = ToolBoard.getColorBoard();
 
             try
             {
                 for (byte i = 0; i < Cases.Count; i++)
                 {
-                    if (i == 0)
-                        FindMove = findSmallerSquaresTime(ChessBoardColorDown, Cases[0], Cases[1], out caseX, out SmallerTime);
-                    else if (i == 1)
-                        continue;
+                    if (ColorBelow == K.Blanc)
+                        dt = Client_TC.GetFirstHit(Cases[i]);
                     else
-                        FindMove = findSmallerSquaresTime(ChessBoardColorDown, caseOther, Cases[i], out caseX, out SmallerTime);
+                        dt = Client_TC.GetFirstHit((byte)(65 - Cases[i]));
 
-                    caseOther = caseX;                    
+                    if (DateTime.Compare(dt, SmallerTime_TC) < 0)
+                    {
+                        Case_TC = Cases[i];
+                        SmallerTime_TC = dt;
+                    }
+
+                    Log.LogText("TC Web Service " + " (" + Cases[i] + ")\t =" + "\t\t\t" + dt.ToString("yyyy/MM/dd hh:mm:ss.fff tt"));
                 }
 
-                response = caseX;
-#if USE_WS
-                if (findSmallerWPiecesTime(Cases,SmallerTime, out responseWhitePiece))
-                    response = responseWhitePiece;
-#endif
             }
             catch (Exception)
             {
@@ -393,182 +374,44 @@ namespace InterfaceChess
             }
 
 
-            return (FindMove);
+            return (Case_TC);
         }
 
-        static private bool findSmallerWPiecesTime(List<byte> Cases,DateTime SmallerTime, out byte response)
+        static public byte FindOlderMove_PB_WS(List<byte> Cases, out DateTime SmallerTime_PB)
         {
-            bool isSmallerFound = false;
-            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces"); 
-
+            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces");           
             DateTime dt;
+            byte Case_PB = 0;
 
-            response = 0;
+            byte ColorBelow = ToolBoard.getColorBoard();
 
+            SmallerTime_PB = default(DateTime);
+            
             for (byte i = 0; i < Cases.Count; i++)
             {
-                dt = Client_PB.GetFirstHit(Cases[i]);
-
-                if (dt != default(DateTime) && DateTime.Compare(dt, SmallerTime) < 0)
-                {
-                    response = Cases[i];
-                    isSmallerFound = true;
-                }
-
-                Log.LogText("WP Web Service Value " + " (" + Cases[i] + ")\t =" + "\t\t\t" + dt.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
-
-            }
-            
-            return (isSmallerFound);
-        }
-            
-        static short findSmallerSquaresTime(byte ChessBoardColorDown, byte caseA, byte caseB, out byte response, out DateTime dtResponse)
-        {
-            short FindMove = 1;
-
-            DateTime WS_FirstDTHitCaseA;
-            DateTime WS_FirstDTHitCaseB;
-
-            int WS_ValueCaseA = 0;
-            int WS_ValueCaseB = 0;
-            
-            int ResultCmp = 0;
-
-            response = caseA;
-            dtResponse = default(DateTime);
-
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
-
-            try
-            {
-                // Si le numero de caseA = 200 et caseB = 100 alors retourne True donc c'est la case B qui fut jouée la première
-                WS_ValueCaseA = Client_SquareTime_WS.GetValue(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
-                WS_ValueCaseB = Client_SquareTime_WS.GetValue(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
-
-                WS_FirstDTHitCaseA = Client_SquareTime_WS.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
-                WS_FirstDTHitCaseB = Client_SquareTime_WS.GetFirstHit(ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
-
-                Log.LogText("Web Service Value " + " (" + caseA + ")\t = \t" + WS_ValueCaseA + "\t\t" + WS_FirstDTHitCaseA.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
-                Log.LogText("Web Service Value " + " (" + caseB + ")\t = \t" + WS_ValueCaseB + "\t\t" + WS_FirstDTHitCaseB.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
-
-                if (WS_FirstDTHitCaseA != default(DateTime) && WS_FirstDTHitCaseB != default(DateTime))
-                {
-                    ResultCmp = DateTime.Compare(WS_FirstDTHitCaseA, WS_FirstDTHitCaseB);
-
-                    // A < B
-                    if (ResultCmp < 0)
-                    {
-                        response = caseA;
-                        dtResponse = WS_FirstDTHitCaseA;
-                    }
-                    else
-                    {
-                        response = caseB;
-                        dtResponse = WS_FirstDTHitCaseB;
-                    }
-
-// On valide avec une autre application pour s'assurer que le temps de reponse est vraiment le bon
-                    response = STA_GetLowerTime(ChessBoardColorDown, caseA, caseB, out dtResponse);
-
-                    if (response == 0)
-                        response = caseA;
-                }
-
-                else if (WS_FirstDTHitCaseA == default(DateTime) && WS_FirstDTHitCaseB == default(DateTime))
-                    FindMove = -1; // Aucun Hit
-                else if (WS_FirstDTHitCaseA != default(DateTime))
-                {
-                    response = caseA;
-                    dtResponse = WS_FirstDTHitCaseA;
-                }
+                if (ColorBelow == K.Blanc)
+                    dt = Client_PB.GetFirstHit(Cases[i]);
                 else
+                    dt = Client_PB.GetFirstHit((byte)(65 - Cases[i]));
+
+                if (DateTime.Compare(dt, SmallerTime_PB) < 0)
                 {
-                    response = caseB;
-                    dtResponse = WS_FirstDTHitCaseB;
+                    Case_PB = Cases[i];
+                    SmallerTime_PB = dt;
                 }
-            }
-            catch (Exception)
-            {
-                Log.LogText("Le Web Service n'est pas démarré !! ");
+
+                Log.LogText("PB Web Service " + " (" + Cases[i] + ")\t =" + "\t\t\t" + dt.ToString("yyyy/MM/dd hh:mm:ss.fff tt"));
+
             }
 
-            return (FindMove);
+            if (Case_PB == 0) 
+            {
+                SmallerTime_PB = DateTime.Today.AddYears(1);
+            }
+            return (Case_PB);
         }
-
-        static byte STA_GetLowerTime(byte ChessBoardColorDown, byte caseA, byte caseB,out DateTime dtResponse)
-        {
-            Boolean bTimeOutA = false;
-            Boolean bTimeOutB = false;
-            byte response = 0;
-            dtResponse = default(DateTime);
-
-            DateTime SQA_FirstHitCaseA = default(DateTime);
-            DateTime SQA_FirstHitCaseB = default(DateTime);
-
-            int ResultCmp = 0;
-
-            GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_GETFIRSTHIT, ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA),1);
-
-            if (!STA_WaitingAnswer())
-            {
-                // No Answer received.
-                bTimeOutA = true;
-            }
-            else
-            {
-                // Answer received
-
-                // Case vide
-                if (GlobalParameters_SquareTime.ST_noCase == caseA)
-                {
-                    SQA_FirstHitCaseA = DateTime.Parse(GlobalParameters_SquareTime.ST_time);
-                    GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_GETFIRSTHIT, ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
-                    if (!STA_WaitingAnswer())
-                    {
-                        if (GlobalParameters_SquareTime.ST_noCase == caseB)
-                        {
-                            SQA_FirstHitCaseB = DateTime.Parse(GlobalParameters_SquareTime.ST_time);
-
-                            ResultCmp = DateTime.Compare(SQA_FirstHitCaseA, SQA_FirstHitCaseB);
-
-                            // A < B
-                            if (ResultCmp < 0)
-                            {
-                                response = caseA;
-                                dtResponse = SQA_FirstHitCaseA;
-
-                                // Remets a zero le timestamp de la case A de l'application SquareTime
-                                GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_SETEMPTYCASE, ChessBoardColorDown == K.Blanc ? caseA : (byte)(65 - caseA));
-                            }
-                            else
-                            {
-                                response = caseB;
-                                dtResponse = SQA_FirstHitCaseB;
-
-                                // Remets a zero le timestamp de la case B de l'application SquareTime
-                                GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_SETEMPTYCASE, ChessBoardColorDown == K.Blanc ? caseB : (byte)(65 - caseB));
-                            }
-                        }
-                    }
-                    else 
-                        bTimeOutB = true;
-                }
-            }
-
-            if (!bTimeOutA)
-            {
-                Log.LogText("SquareTime Application " + " (" + caseA + ")\t = \t" + "\t\t" + SQA_FirstHitCaseA.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
-                if (!bTimeOutB)
-                    Log.LogText("SquareTime Application " + " (" + caseB + ")\t = \t" + "\t\t" + SQA_FirstHitCaseB.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
-                else
-                    Log.LogText("SquareTime Application Time Out ! " + " (" + caseB + ")\t = \t" + "\t\t");
-            }
-            else
-                Log.LogText("SquareTime Application Time Out ! " + " (" + caseA + ")\t = \t" + "\t\t");
             
-            return (response);
-        }
-
+ 
         static short DisplayLog_WP_Pieces(byte ChessBoardColorDown, byte caseA, byte caseB, out byte response)
         {
             short FindMove = 1;
@@ -621,164 +464,12 @@ namespace InterfaceChess
             return (FindMove);
         }
 
-        static short DoTestSquare(byte noCaseA, byte noCaseB, out int ValA, out int ValB)
-        {
-            short err = -1;
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
-
-            ValA = 0;
-            ValB = 0;
-
-            for (byte nbTry = 1; nbTry <= 5 && err == -1; nbTry++)
-            {
-                Thread.Sleep(500);
-                ValA = Client_SquareTime_WS.GetValue(noCaseA);
-                ValB = Client_SquareTime_WS.GetValue(noCaseB);
-
-                Log.LogText("Try Again...\t(" + ValA + "," + ValB + ")");
-
-                if (ValA > 0 && ValB > 0)
-                    err=0;
-            }
-
-            return (err);
-        }
-
-        /*
-         * Cas typique le Fou en f8 vient d'etre joue en b4 un coup plus tard
-         * fut le 0-0. La sequence typique est A(61) = 22  B(62) = 27 pour le Roi en e8 (61) 
-         * et le Fou en f8 (62). Le coup du Fou semble plus recent que celui du Roi (roque)
-         * L'explication vient du fait que le roque genere un refresh de la case 61,62,63 et 64.
-         * On doit tenir compte de ce fait. Si le Fou ou le Cavalier a ete joue et que le roque
-         * n'a pas encore ete fait alors il y a un risque que no de sequence soit inverse.
-         * Si la case A est le Roi et la case B est le Fou ou le Roi alors on inverse le resultat
-         * entre le Roi et la piece B
-         **/
-
-        static private short isSquareAlreadyCalled(byte noCaseA, byte noCaseB, int ValA, int ValB, out byte OldestCall)
-        {
-            short FindNoCase = -1;
-            int valRook = 0;
-            CaseActivite[] BoardLogic = ToolBoard.getCasesAvailable();
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_SquareTime_WS = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
-
-            OldestCall = 0;
-
-            // 0-0 Blanc
-            if (noCaseA == 5 && (noCaseB == 6 || noCaseB == 7))
-            {
-                if (BoardLogic[noCaseA].getPiece() == "R" && BoardLogic[noCaseA].getColor() == "B")
-                {
-                    if (BoardLogic[6].getPiece() == "-")
-                    {
-                        if (BoardLogic[7].getPiece() == "-")
-                        {
-                            if (BoardLogic[8].getPiece() == "T" && BoardLogic[8].getColor() == "B")
-                            {
-                                if (ValA < ValB)
-                                {
-                                    valRook = Client_SquareTime_WS.GetValue(8);
-
-                                    // Refresh de la case Tour s'est fait apres le Roi
-                                    if (valRook > ValA)
-                                        FindNoCase = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 0-0-0 Blanc
-            else if (noCaseA == 5 && (noCaseB == 4 || noCaseB == 3 || noCaseB == 2))
-            {
-                if (BoardLogic[noCaseA].getPiece() == "R" && BoardLogic[noCaseA].getColor() == "B")
-                {
-                    if (BoardLogic[4].getPiece() == "-")
-                    {
-                        if (BoardLogic[3].getPiece() == "-")
-                        {
-                            if (BoardLogic[2].getPiece() == "-")
-                            {
-                                if (BoardLogic[1].getPiece() == "T" && BoardLogic[1].getColor() == "B")
-                                {
-                                    if (ValA < ValB)
-                                    {
-                                        valRook = Client_SquareTime_WS.GetValue(1);
-
-                                        if (valRook > ValA)
-                                            FindNoCase = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 0-0 Noir
-            if (noCaseA == 61 && (noCaseB == 62 || noCaseB == 63))
-            {
-                if (BoardLogic[noCaseA].getPiece() == "R" && BoardLogic[noCaseA].getColor() == "N")
-                {
-                    if (BoardLogic[62].getPiece() == "-")
-                    {
-                        if (BoardLogic[63].getPiece() == "-")
-                        {
-                            if (BoardLogic[64].getPiece() == "T" && BoardLogic[64].getColor() == "N")
-                            {
-                                if (ValA < ValB)
-                                {
-                                    valRook = Client_SquareTime_WS.GetValue(64);
-
-                                    if (valRook > ValA)
-                                        FindNoCase = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 0-0-0 Noir
-            else if (noCaseA == 61 && (noCaseB == 60 || noCaseB == 59 || noCaseB == 58))
-            {
-                if (BoardLogic[noCaseA].getPiece() == "R" && BoardLogic[noCaseA].getColor() == "N")
-                {
-                    if (BoardLogic[60].getPiece() == "-")
-                    {
-                        if (BoardLogic[59].getPiece() == "-")
-                        {
-                            if (BoardLogic[58].getPiece() == "-")
-                            {
-                                if (BoardLogic[57].getPiece() == "T" && BoardLogic[57].getColor() == "N")
-                                {
-                                    if (ValA < ValB)
-                                    {
-                                        valRook = Client_SquareTime_WS.GetValue(57);
-
-                                        if (valRook > ValA)
-                                            FindNoCase = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (FindNoCase == 1)
-                OldestCall = noCaseB;
-
-            return (FindNoCase);
-        }
-
-        static public bool UpdateSquareWebService(byte Dep, byte Dest, byte roque, bool PriseEnPassant, byte color)
+        static public bool MovePiece_TC_WS(byte Dep, byte Dest, byte roque, bool PriseEnPassant, byte color)
         {
             bool success = true;
             byte ChessBoardColorDown = ToolBoard.getColorBoard();
 
-            SquareTimeProcessingService.SquareTimeProcessingServiceClient client = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
+            SquareTimeProcessingService.SquareTimeProcessingServiceClient Client_TC = new SquareTimeProcessingService.SquareTimeProcessingServiceClient("BasicHttpBinding_ISquareTimeProcessingService");
 
             // Case Depart
             if (roque == K.PRoque)
@@ -787,17 +478,17 @@ namespace InterfaceChess
                 {
                     if (color == K.Blanc)
                     {
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 5 : (byte) 60);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 6 : (byte) 59);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 7 : (byte) 58);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 8 : (byte) 57);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 5 : (byte) 60);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 6 : (byte) 59);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 7 : (byte) 58);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 8 : (byte) 57);
                     }
                     else
                     {
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 61 : (byte) 4);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 62 : (byte) 3);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 63 : (byte) 2);
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 64 : (byte) 1);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 61 : (byte) 4);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 62 : (byte) 3);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 63 : (byte) 2);
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 64 : (byte) 1);
                     }
                 }
             }
@@ -805,23 +496,23 @@ namespace InterfaceChess
             {
                 if (color == K.Blanc)
                 {
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 1 : (byte) 64);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 2 : (byte) 63);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 3 : (byte) 62);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 4 : (byte) 61);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 5 : (byte) 60);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 1 : (byte) 64);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 2 : (byte) 63);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 3 : (byte) 62);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 4 : (byte) 61);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 5 : (byte) 60);
                 }
                 else
                 {
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 57 : (byte) 8);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 58 : (byte) 7);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 59 : (byte) 6);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 60 : (byte) 5);
-                    client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 61 : (byte) 4);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 57 : (byte) 8);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 58 : (byte) 7);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 59 : (byte) 6);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 60 : (byte) 5);
+                    Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte) 61 : (byte) 4);
                 }
             }
             else
-                client.SetFirstHit(ChessBoardColorDown == K.Blanc ? Dep : ((byte) (65 - Dep)));
+                Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? Dep : ((byte) (65 - Dep)));
 
             // Case Arrivee 
             if (roque == K.AucunRoque)
@@ -829,12 +520,93 @@ namespace InterfaceChess
                 if (PriseEnPassant)
                 {
                     if (color == K.Blanc)
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest + 8) : (byte)(65 - (Dest + 8)));
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest + 8) : (byte)(65 - (Dest + 8)));
                     else
-                        client.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest - 8) : (byte)(65 - (Dest - 8)));
+                        Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest - 8) : (byte)(65 - (Dest - 8)));
                 }
 
-                success = client.SetFirstHit(Dest);
+                success = Client_TC.SetFirstHit(Dest);
+            }
+
+            return (success);
+        }
+
+        static public bool MovePiece_PB_WS(byte Dep, byte Dest, byte roque, bool PriseEnPassant, byte color)
+        {
+            bool success = true;
+            byte ChessBoardColorDown = ToolBoard.getColorBoard();
+
+            PBlanches.WhitePiecesClient Client_PB = new PBlanches.WhitePiecesClient("BasicHttpBinding_IWhitePieces");
+
+            // Case Depart
+            if (roque == K.PRoque)
+            {
+                if (ChessBoardColorDown == K.Blanc)
+                {
+                    if (color == K.Blanc)
+                    {
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)5 : (byte)60);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)6 : (byte)59);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)7 : (byte)58);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)8 : (byte)57);
+                    }
+                    else
+                    {
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)61 : (byte)4);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)62 : (byte)3);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)63 : (byte)2);
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)64 : (byte)1);
+                    }
+                }
+            }
+            else if (roque == K.GRoque)
+            {
+                if (color == K.Blanc)
+                {
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)1 : (byte)64);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)2 : (byte)63);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)3 : (byte)62);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)4 : (byte)61);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)5 : (byte)60);
+                }
+                else
+                {
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)57 : (byte)8);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)58 : (byte)7);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)59 : (byte)6);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)60 : (byte)5);
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)61 : (byte)4);
+                }
+            }
+ //           else
+ //               Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? Dep : ((byte)(65 - Dep)));
+
+            else if (roque == K.AucunRoque)
+            {
+                if (PriseEnPassant)
+                {
+                    // Case depart
+                    Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? Dep : ((byte)(65 - Dep)));
+
+                    // Case Arrivee
+                    if (color == K.Blanc)
+                    {
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest + 8) : (byte)(65 - (Dest + 8)));
+                    }
+                    else
+                    {
+                        Client_PB.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest - 8) : (byte)(65 - (Dest - 8)));
+                    }
+
+                    success = Client_PB.SetFirstHit(Dest);
+
+                }
+                else
+                {
+                    success = Client_PB.MovePiece(Dep, Dest);
+                }
+
+
             }
 
             return (success);
@@ -858,6 +630,35 @@ namespace InterfaceChess
             }
 
             return (SquareTimeAppReceived);
+        }
+
+        static public byte Compare(byte noCaseTC, byte noCasePX, DateTime tc, DateTime px)
+        {
+            if (DateTime.Compare(tc, px) < 0)
+                return (noCaseTC);
+            else
+                return (noCasePX);
+        }
+
+        static public bool PriseEnPassant(byte caseDepart, byte caseDest)
+        {
+            if (ToolBoard.PriseEnPassant(caseDepart, caseDest))
+                return (true);
+
+            return (false);
+        }
+
+        static public bool isSquareStillEmpty(byte caseX)
+        {
+            Bitmap colorCase = ToolBoard.TakePictureCaseColor(caseX);
+            Bitmap colorCaseWhiteVide = ToolBoard.getImPairCaseEmpty();
+            Bitmap colorCaseBlackVide = ToolBoard.getPairCaseEmpty();
+
+            if (ToolBoard.CompareBitmaps((Image)colorCase, colorCaseWhiteVide) ||
+                ToolBoard.CompareBitmaps((Image)colorCase, colorCaseBlackVide))
+                return (true);
+
+            return (false);
         }
 
     }

@@ -222,7 +222,7 @@ namespace DetectBoard
 
             GC_Init_ConfigBoard();
 
-            while (GC_ReadMessage_ConfigBoard() != "No Message");
+//          while (GC_ReadMessage_ConfigBoard() != "No Message");
 
             for (int counter = 0; counter < 1000; counter++)
             {
@@ -340,9 +340,9 @@ namespace DetectBoard
            if (nameProcess.GetLength(0) == 0)
             {
                 if (Visible.Length > 0)
-                    m_process = Process.Start("Gma.UserActivityMonitorDemo.exe", Visible);
+                    m_process = Process.Start(@"C:\Users\yv.tremblay\Documents\Visual Studio 2013\Projects\Mouse\GlobalHook\Gma.UserActivityMonitorDemo\bin\Release\Gma.UserActivityMonitorDemo.exe", Visible);
                 else
-                    m_process = Process.Start("Gma.UserActivityMonitorDemo.exe");
+                    m_process = Process.Start(@"C:\Users\yv.tremblay\Documents\Visual Studio 2013\Projects\Mouse\GlobalHook\Gma.UserActivityMonitorDemo\bin\Release\Gma.UserActivityMonitorDemo.exe");
             }
         }
     }

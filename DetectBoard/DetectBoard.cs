@@ -148,7 +148,10 @@ namespace DetectBoard
             m_offset_y = height / 16;
 
             for (byte i = 1; i <= 64; i++)
+            {
                 config_PositionCase(i);
+                TakePictureCase(i);
+            }
         }
 
         static public void config_PositionCase(byte noCase)
@@ -203,6 +206,37 @@ namespace DetectBoard
             }
             
         }
+
+        static private Bitmap TakePictureCase(byte noCase)
+        {
+            string filename = string.Empty;
+            int xPosScreen = m_noCase_x[noCase] - m_offset_x;
+            int yPosScreen = m_noCase_y[noCase] - m_offset_y;
+            int caseWidth = m_offset_x * 2;
+            int caseHeight = m_offset_y * 2;
+
+            Bitmap screenBmp = new Bitmap(caseWidth, caseHeight);
+            Graphics g = Graphics.FromImage(screenBmp);
+
+            IntPtr dc1 = API.GetDC(API.GetDesktopWindow());
+            IntPtr dc2 = g.GetHdc();
+
+            //Main drawing, copies the screen to the bitmap
+            //last number is the copy constant
+            API.BitBlt(dc2, 0, 0, caseWidth, caseHeight, dc1, xPosScreen, yPosScreen, 13369376);
+
+            //Clean up
+            API.ReleaseDC(API.GetDesktopWindow(), dc1);
+            g.ReleaseHdc(dc2);
+            g.Dispose();
+
+            filename = "C:\\Board\\Case_" + noCase + ".bmp";
+            screenBmp.Save(@filename, System.Drawing.Imaging.ImageFormat.MemoryBmp);
+
+            return (screenBmp);
+
+        }
+ 
 
         static private DialogResult DisplayBoard()
         { 

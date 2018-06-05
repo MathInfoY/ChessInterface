@@ -88,7 +88,9 @@ namespace InterfaceChess
                         items["CASE_DESTINATION"] = Arr;
                         items["NO_COUP_B"]++;
 
- //                     QueueMsg.SendMessage_To_OpenWindow(string.Format("{0};{1}", Dep, Arr)); // envoie le coup Blanc à l'interface 
+ //                     QueueMsg.SendMessage_To_OpenWindow(string.Format("{0};{1}", Dep, Arr)); // envoie le coup Blanc à l'interface
+
+                        BusinessBlanc.ResetMultipleMovesDest();
 
                         Log.LogText("(" + Dep + "," + Arr + ")" + "\t" + txtMove[0]);
                     }
@@ -107,7 +109,7 @@ namespace InterfaceChess
 #endif
                     }
                     else if (nbMoveFind == K.isResetingGame)
-                    {
+                    {                  
                         items["HOLD"] = 1; 
                         Log.LogText("End Game");
                     }

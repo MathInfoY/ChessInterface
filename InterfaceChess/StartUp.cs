@@ -371,7 +371,7 @@ namespace InterfaceChess
                 // On reset la partie avec les Blancs pour les 2 applications (redessine les 64 cases)
                 GlobalSMEXE.SendMsg_Call_SquareTime_EXE(GlobalParameters_SquareTime.ST_NEWGAME, 0);
 #if SERVICE_TC
-                Client_TC.NewGame(); // Remets l'echiquier a l'etat original
+              Client_TC.NewGame(); // Remets l'echiquier a l'etat original
 #endif
 
 #if SERVICE_PB

@@ -34,10 +34,10 @@ namespace InterfaceChess.SquareTimeProcessingService {
         System.Threading.Tasks.Task<bool> isFirstLTSecundAsync(byte FirstCase, byte SecundCase);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SetFirstHitResponse")]
-        bool SetFirstHit(byte noCase);
+        void SetFirstHit(byte noCase);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/SetFirstHit", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/SetFirstHitResponse")]
-        System.Threading.Tasks.Task<bool> SetFirstHitAsync(byte noCase);
+        System.Threading.Tasks.Task SetFirstHitAsync(byte noCase);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ISquareTimeProcessingService/GetFirstHit", ReplyAction="http://tempuri.org/ISquareTimeProcessingService/GetFirstHitResponse")]
         System.DateTime GetFirstHit(byte nocase);
@@ -103,11 +103,11 @@ namespace InterfaceChess.SquareTimeProcessingService {
             return base.Channel.isFirstLTSecundAsync(FirstCase, SecundCase);
         }
         
-        public bool SetFirstHit(byte noCase) {
-            return base.Channel.SetFirstHit(noCase);
+        public void SetFirstHit(byte noCase) {
+            base.Channel.SetFirstHit(noCase);
         }
         
-        public System.Threading.Tasks.Task<bool> SetFirstHitAsync(byte noCase) {
+        public System.Threading.Tasks.Task SetFirstHitAsync(byte noCase) {
             return base.Channel.SetFirstHitAsync(noCase);
         }
         

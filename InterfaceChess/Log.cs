@@ -20,6 +20,7 @@ namespace InterfaceChess
         private static string m_indexFile = string.Empty;
         private static string m_Board = string.Empty;
         private static string m_interfaceLog = string.Empty;
+        private static bool m_isLastWaiting = false;
  
         static public void InitializeLog()
         {
@@ -98,6 +99,8 @@ namespace InterfaceChess
                     File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
                     m_waiting = 0;
                 }
+
+                m_isLastWaiting = true;
             }
             else if (txt.Equals("Waiting..."))
             {
@@ -114,8 +117,13 @@ namespace InterfaceChess
             }
             else
             {
-                File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
+                if (!m_isLastWaiting)
+                    File.AppendAllText(@m_interfaceLog, txt + Environment.NewLine);
+                else
+                    File.AppendAllText(@m_interfaceLog, Environment.NewLine + txt + Environment.NewLine);
+
                 m_waiting_new_game = 0;
+                m_isLastWaiting = false;
             }
         }
 

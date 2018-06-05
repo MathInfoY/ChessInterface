@@ -59,7 +59,7 @@ namespace InterfaceChess
                 if (FindMoveDep == -1) // Toujours la meme erreur on appel le Web Service pour trouver le coup
                 {
 #if SERVICE_TC
-                    caseDepart_TC = Business.FindOlderMove_TC_WS(Departs, out LowestTime_TC);
+                  caseDepart_TC = Business.FindOlderMove_TC_WS(Departs, out LowestTime_TC);
 #endif
 
 #if SERVICE_PN
@@ -100,7 +100,7 @@ namespace InterfaceChess
                     // Aucun coup trouve
                     if (FindMoveArr == 0)
                     {
-                        Log.LogText("Check Again ...");
+                        Log.LogText("Arr Not Found Check Again ...");
                         Thread.Sleep(500);
                         FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
                         if (FindMoveArr == K.isResetingGame)
@@ -197,11 +197,212 @@ namespace InterfaceChess
             }
 
             return (FindMoveArr);
-             
-             
+                      
+        }
+
+        static public short Test_Process_Noir_Player(byte lastDep, byte lastDest, out byte roque,out CaseActivite[] cloneActivite)
+        {
+            short FindMoveDep = 0;
+            short FindMoveArr = 0;
+            byte caseDepart = 0;
+            byte caseArrivee = 0;
+            bool PriseEnPassant = false;
+            bool Success_Move = false;
+
+            cloneActivite = null;
+
+// Trouve les coups de depart et d'arrivee
+            FindMoveDep = Test_Depart(lastDep, lastDest, out caseDepart, out roque);
+
+            if (FindMoveDep == 1)
+            {
+                if (roque == K.PRoque || roque == K.GRoque)
+                    FindMoveArr = 1;
+                else
+                    FindMoveArr = Test_Arrivee(lastDep, lastDest, caseDepart, out caseArrivee, out PriseEnPassant, out cloneActivite);
+            }
+
+// Sauve les coups de depart et d'arrivee
+            if (FindMoveArr == 1)
+            {
+                if (roque == K.PRoque || roque == K.GRoque)
+                    EndProcessMove(roque, 0, K.Noir, false);
+                else
+                    EndProcessMove(caseDepart, caseArrivee, K.Noir, PriseEnPassant);
+
+// Joue la piece dans les Web Services
+#if SERVICE_TC
+                Success_Move = Business.MovePiece_TC_WS(caseDepart, caseArrivee, roque, PriseEnPassant, K.Noir);
+
+                if (!Success_Move)
+                    Log.LogText(" *** ABNORMAL ERROR WEB SERVICE TC NO FOUND CASE ARR (2) *** ");
+#endif
+            }
+
+            return (FindMoveArr);
+        }
+
+        static private short Test_Depart(byte lastDep, byte lastDest, out byte caseDepart, out byte roque)
+        {
+            List<byte> Departs = new List<byte>();
+            short FindMoveDep = 0;
+            byte caseDepart_TC = 0;
+            byte caseDepart_PN = 0;
+
+            DateTime LowestTime_TC = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite toute les cases 
+            DateTime LowestTime_PN = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite seulement les Pieces Blanches
+
+            caseDepart = 0;
+
+            // Trouve Coup Depart
+            FindMoveDep = Business.GetDepartMovePlayer(lastDep, lastDest, K.Noir, out roque, Departs);
+
+            // Erreur trouve au moins 2 coups de départ ont été trouvé on re-essaie
+            if (FindMoveDep == -1)
+            {
+                if (Departs.Count > 5)
+                {
+                    Departs.Clear();
+                    return(K.isResetingGame); // Nouvelle partie , beaucoup de changements 
+                }
+
+                Departs.Clear();
+                FindMoveDep = Business.TestDepartAgain(lastDep, lastDest, K.Noir, out roque, Departs);
+
+                if (FindMoveDep == -1) // Toujours la meme erreur on appel le Web Service pour trouver le coup
+                {
+#if SERVICE_TC
+                    caseDepart_TC = Business.FindOlderMove_TC_WS(Departs, out LowestTime_TC);
+#endif
+
+#if SERVICE_PN
+                    caseDepart_PN = Business.FindOlderMove_PB_WS(Departs, out LowestTime_PN);
+#endif
+                    if (caseDepart_TC > 0 || caseDepart_PN > 0)
+                    {
+                        caseDepart = Business.Compare(caseDepart_TC, caseDepart_PN, LowestTime_TC, LowestTime_PN);
+                        FindMoveDep = 1;
+                    }
+                    else
+                        return (-1);
+
+                }
+                else if (FindMoveDep == 1)
+                    caseDepart = Departs[0];
+            }
+            else if (FindMoveDep == 1)
+                caseDepart = Departs[0];
 
 
+            if (FindMoveDep == 0)
+                return (0);
 
+            if (FindMoveDep == K.isResetingGame)
+                return (K.isResetingGame);
+
+            return (FindMoveDep);
+        }
+
+        static private short Test_Arrivee(byte lastDep, byte lastDest, byte caseDepart, out byte caseArrivee, out bool PriseEnPassant, out CaseActivite[] cloneActivite)
+        {
+            short FindMoveArr = 0;
+            byte caseDest = 0;
+            byte caseDest_TC = 0;
+            byte caseDest_PB = 0;
+            
+            List<byte> Destination = new List<byte>();
+            DateTime LowestTime_TC = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite toute les cases
+            DateTime LowestTime_PB = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite seulement les Pieces Blanches
+
+            cloneActivite = ToolBoard.getCloneCaseActivite();
+            PriseEnPassant = false;
+            caseArrivee = 0;
+
+            // Set_Activities_Move est appelé dans cette fonction
+            FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+            if (FindMoveArr == K.isResetingGame)
+                return (K.isResetingGame);
+
+            // Aucun coup trouve
+            if (FindMoveArr == 0)
+            {
+                Log.LogText("Arr Not Found Check Again ...");
+                Thread.Sleep(500);
+                FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                if (FindMoveArr == K.isResetingGame)
+                    return (K.isResetingGame);
+            }
+
+            // Plusieurs coups trouvé : Identifier le bon.
+            if (FindMoveArr == -1)
+            {
+                Destination.Clear();
+                FindMoveArr = Business.TestDestAgain(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+                if (FindMoveArr == K.isResetingGame)
+                    return (K.isResetingGame);
+            }
+
+            // Si Aucun coup : Verifie la case sélectionnée du coup précédent 
+            if (FindMoveArr == 0)
+            {
+                FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Noir, out caseDest, out PriseEnPassant);
+                if (FindMoveArr == 1)
+                    Destination.Add(caseDest);
+            }
+#if SERVICE_TC
+            // Appel le Web Service des cases
+            if (FindMoveArr == 0)
+                FindMoveArr = Business.GetDest_TC_WS(lastDep, lastDest, caseDepart, K.Noir, Destination, out PriseEnPassant);
+#endif
+            // Aucun coup trouvé : Vérifie si le coup arrive sur la case de départ ou d'arrivée du coup précédent 
+            if (FindMoveArr == 0)
+            {
+                FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Noir, out caseDest, out PriseEnPassant);
+                if (FindMoveArr == 1)
+                    caseArrivee = caseDest;
+            }
+
+            // Si un coup : Success ! 
+            else if (FindMoveArr == 1)
+            {
+                caseDest = Destination[0];
+                caseArrivee = caseDest;
+            }
+
+            // Si 2 coups ou plus ont ete trouves on appel le Web Service pour trouver le coup
+
+            else if (FindMoveArr == -1)
+            {
+#if SERVICE_TC
+                caseDest_TC = Business.FindOlderMove_TC_WS(Destination, out LowestTime_TC);
+                if (caseDest_TC == 0)
+                {
+                    Log.LogText(" *** ABNORMAL ERROR WEB SERVICE TC NO FOUND CASE ARR *** ");
+                    return (-1);
+                }
+                caseDest = caseDest_TC;
+#endif
+
+#if SERVICE_PB
+                    caseDest_PB = Business.FindOlderMove_PB_WS(Destination, out LowestTime_PB);
+                    caseDest = caseDest_PB;
+#endif
+
+                if (caseDest_TC > 0 || caseDest_PB > 0)
+                {
+                    caseDest = Business.Compare(caseDest_TC, caseDest_PB, LowestTime_TC, LowestTime_PB);
+                    PriseEnPassant = Business.PriseEnPassant(caseDepart, caseDest);
+                    caseArrivee = caseDest;
+                    FindMoveArr = 1;
+                }
+                else
+                    return (-1);
+            }
+
+            else
+                return (0);
+            
+            return (FindMoveArr);
         }
 
         static private void EndProcessMove(byte caseDepart, byte caseDest, byte color, bool PriseEnPassant)

@@ -22,6 +22,8 @@ namespace InterfaceChess
 
         private static bool m_PRoque = false;
         private static bool m_GRoque = false;
+
+        private static byte m_Count_MultipleMovesDest = 0; 
          
         static public bool Process_Blanc_Human(out byte roque)
         {
@@ -57,12 +59,30 @@ namespace InterfaceChess
 
             return (m_Dest_Hum > 0);
         }
-         /*
-          * Retourne  0 si aucun coup
-          * Retourne  1 si coup trouvé
-          * Retourne -1 si erreur coup depart
-          * Retourne -2 si erreur coup d'arrivee
-          */
+        /*
+         * Retourne  0 si aucun coup
+         * Retourne  1 si coup trouvé
+         * Retourne -1 si erreur coup depart
+         * Retourne -2 si erreur coup d'arrivee
+         * 
+         * Regle Coups
+         * 
+         * Depart
+         *         1) Si on trouve une seule case (Succès) 
+         *         2) Si on ne trouve pas de cases on recommence (Echec)
+         *         3) Si on trouve plusieurs coups de départ au dela de 5 cases alors on recommence à zéro c'est une nouvelle partie (Echec)
+         *         4) Si on trouve plusieurs coups de départ alors on appel le Web Service TC pour trouver le plus vieux (Succès).
+         *         
+         * Arrivée
+         *         1) Si on trouve une seule case (Succès)
+         *         2) Si on ne trouve pas de cases  (Echec)
+         *            a. On attends un peu et on refait un Test.
+         *            b. Si on ne trouve pas de cases, alors on appel le Web Service TC pour trouver le plus vieux coup. 
+         *            c. Si on ne trouve toujours pas de cases alors on vérifie si le coup Blanc pourrait être l'une des deux cases du coup Noir précédent 
+         *         3) Si on trouve plusieurs coups (Echec)
+         *            a. On refait au maximun 3 tentatives pour trouver le coup d'Arrivé (Trouve le coup de Depart etc ...)
+         *            b. Au dela de 3 tentatives, on appel le Web Service TC pour trouver le plus vieux coup (Success). 
+         */
         static public short Process_Blanc_Player(byte lastDep, byte lastDest, out byte roque, out CaseActivite[] cloneActivite)
         {
             // Success/Echec : 
@@ -81,7 +101,7 @@ namespace InterfaceChess
             byte caseDepart_TC = 0;  // Case Depart     : Du Web Service qui traite toute les cases 
             byte caseDepart_PB = 0;  // Case Depart     : Du Web Service qui traite seulement les Pieces Blanches
             byte caseDest_TC = 0;    // Case Arrivee    : Du Web Service qui traite toute les cases 
-            byte caseDest_PN = 0;    // Case Arrivee    : Du Web Service qui traite toute les cases 
+//          byte caseDest_PN = 0;    // Case Arrivee    : Du Web Service qui traite toute les cases 
 
             DateTime LowestTime_TC = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite toute les cases 
             DateTime LowestTime_PB = DateTime.Today.AddYears(1); // Timestamp pour une case du Web Service qui traite seulement les Pieces Blanches
@@ -154,12 +174,13 @@ namespace InterfaceChess
                     // Aucun coup trouve
                     if (FindMoveArr == 0)
                     {
-                        Log.LogText("Check Again ...");
+                        Log.LogText("Arr Not Found Check Again ...");
                         Thread.Sleep(500);
                         FindMoveArr = Business.GetDestMovePlayer(lastDep, lastDest, caseDepart, K.Blanc, Destination, out PriseEnPassant);
                         if (FindMoveArr == K.isResetingGame)
                             return (K.isResetingGame);
                     }
+
                     // Plusieurs coups trouvé : Identifier le bon.
                     if (FindMoveArr == -1)
                     {
@@ -180,40 +201,46 @@ namespace InterfaceChess
                         FindMoveArr = Business.WhichCaseSelected(lastDep, lastDest, caseDepart, K.Blanc, out caseDest, out PriseEnPassant);
                     
                     // Si un coup : Success ! 
-                    else if (FindMoveArr == 1)
+                    if (FindMoveArr == 1)
                     {
                         caseDest = Destination[0];
                         EndProcessMove(caseDepart, caseDest, K.Blanc, PriseEnPassant);
                     }
 
-                    // Plusieurs coups ont ete trouvé on appel le Web Service pour trouver le premier coup joué                    
+                    // Plusieurs coups ont ete trouvés il est inutile d'appeler les Web Service pour ces raisons :
+                    // 1) Premier cas. La business rule du plus vieux coup ne tient plus pour les coups d'arrivees.
+                    //    Il est possible que le joueur n'aie pas encore fini de deplacer la piece sur la case d'arrivee,
+                    //    En consequence plusieurs cases sont rafraichies.
+                    // 2) Second cas. Cas ou le Cb1 joue en c3 et que la case d2 est libre. Le Fou vient de jouer en d2 mais
+                    //    le coup du cavalier n'a pas encore ete enregistré par l'application. Si La case d2 a ete redessinnee
+                    //    avant la case c3 alors il y a un erreur. On doit appeler le Web Service.
+
+                    //    On test 3 fois (pour le même coup de départ). Si apres 3 fois il y a toujours plusieurs coups
+                    //    alors on appel le Web Service
+
                     else if (FindMoveArr == -1)
                     {
-#if SERVICE_TC
-                        caseDest_TC = Business.FindOlderMove_TC_WS(Destination, out LowestTime_TC);
-                        if (caseDest_TC == 0)
+                        if (m_Count_MultipleMovesDest == 2)
                         {
-                            Log.LogText(" *** ABNORMAL ERROR ARRIVEE *** ");
+
+                            // Call Web Service
+                            caseDest_TC = Business.FindOlderMove_TC_WS(Destination, out LowestTime_TC);
+                            if (caseDest_TC == 0)
+                            {
+                                Log.LogText(" *** ABNORMAL ERROR WEB SERVICE TC NO FOUND CASE ARR *** ");
+                                return (-1);
+                            }
+                            caseDest = caseDest_TC;
+                            m_Count_MultipleMovesDest = 0;
+                        }
+                        else
+                        {
+#if SERVICE_TC
+                            m_Count_MultipleMovesDest++;
+#endif
                             return (-1);
                         }
-                        caseDest = caseDest_TC;
-#endif
-
-#if SERVICE_PN
-                        caseDest_PN = Business.FindOlderMove_PN_WS(Destination, out LowestTime_PN);
-                        caseDest = caseDest_PN;
-#endif
-                        if (caseDest_TC > 0 || caseDest_PN > 0)
-                        {
-                            caseDest = Business.Compare(caseDest_TC, caseDest_PN, LowestTime_TC, LowestTime_PN);
-                            PriseEnPassant = Business.PriseEnPassant(caseDepart, caseDest);
-                            EndProcessMove(caseDepart, caseDest, K.Blanc, PriseEnPassant);
-                         }
-                         else
-                           return (-1);
-
                     }
-
                     else
                         return (0);
                 }
@@ -287,6 +314,11 @@ namespace InterfaceChess
          public static void Get_Move_Arr_Player(out byte Arr)
          {
              Arr = m_Dest_Adv;
+         }
+
+         public static void ResetMultipleMovesDest()
+         {
+             m_Count_MultipleMovesDest = 0;
          }
         
      }

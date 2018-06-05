@@ -49,8 +49,10 @@ namespace InterfaceChess
                 screenBmpFromList = ToolBoard.getBitmap(i);
 
                 if (screenBmpFromList == null)
+                {
                     isResetingGame = true; // Est en train de redessiner l'echiquier (nouvelle partie)
-
+                    Log.LogText("ResetGame" + i);
+                }
                 else if (!ToolBoard.CompareBitmaps((Image)screenBmp, (Image)screenBmpFromList))
                 {
                     if (i == 1 || i == 8 || i == 57 || i == 64) caseTour = i;
@@ -212,7 +214,7 @@ namespace InterfaceChess
 //                if (CaseDepart > 45)
 //                    ToolBoard.PhotoBoard(i);
 
-                screenBmp = ToolBoard.TakePictureCase(i, Convert.ToByte(ConfigurationManager.AppSettings["ZoomOutCase"].ToString().Trim()));
+                screenBmp = ToolBoard.TakePictureCase(i);
                 screenBmpFromList = ToolBoard.getBitmap(i);
 
                 if (screenBmpFromList == null)
@@ -221,6 +223,15 @@ namespace InterfaceChess
                 else if (!ToolBoard.CompareBitmaps(screenBmp, screenBmpFromList))
                 {
                     colorCaseArr = ToolBoard.TakePictureCaseColor(i);
+
+                    if (i == 21)
+                    {
+                        colorCaseArr.Save(@"C:\Chess\Case_21.bmp", System.Drawing.Imaging.ImageFormat.MemoryBmp);
+                    }
+                    if (i == 29)
+                    {
+                        colorCaseArr.Save(@"C:\Chess\Case_29.bmp", System.Drawing.Imaging.ImageFormat.MemoryBmp);
+                    }
 
                     Log.LogText("Arrivee ---> " + i);
                     isFind = true;
@@ -345,7 +356,7 @@ namespace InterfaceChess
             DateTime dt;
             byte Case_TC = 0;
 
-            SmallerTime_TC = default(DateTime);
+            SmallerTime_TC = DateTime.Today.AddYears(1);
 
             byte ColorBelow  = ToolBoard.getColorBoard();
 
@@ -364,7 +375,7 @@ namespace InterfaceChess
                         SmallerTime_TC = dt;
                     }
 
-                    Log.LogText("TC Web Service " + " (" + Cases[i] + ")\t =" + "\t\t\t" + dt.ToString("yyyy/MM/dd hh:mm:ss.fff tt"));
+                    Log.LogText("TC Web Service " + "\t (" + Cases[i] + ")" + "\t\t" + dt.ToString("yyyy/MM/dd hh:mm:ss.fff tt"));
                 }
 
             }
@@ -385,7 +396,7 @@ namespace InterfaceChess
 
             byte ColorBelow = ToolBoard.getColorBoard();
 
-            SmallerTime_PB = default(DateTime);
+            SmallerTime_PB = DateTime.Today.AddYears(1); 
             
             for (byte i = 0; i < Cases.Count; i++)
             {
@@ -525,7 +536,8 @@ namespace InterfaceChess
                         Client_TC.SetFirstHit(ChessBoardColorDown == K.Blanc ? (byte)(Dest - 8) : (byte)(65 - (Dest - 8)));
                 }
 
-                success = Client_TC.SetFirstHit(Dest);
+ //               success = Client_TC.SetFirstHit(Dest);
+                Client_TC.SetFirstHit(Dest);
             }
 
             return (success);

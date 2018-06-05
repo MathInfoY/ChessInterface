@@ -41,10 +41,6 @@ namespace InterfaceChess
                 {
                     // Mode Hold confirmer
                     items["THREAD_WAITING_TCATUS"] = 1;
-
-//                    if (counter_time % 100 == 0)
-//                        Log.LogText("Waiting...");
-
                     continue;
                 }
 
@@ -63,7 +59,7 @@ namespace InterfaceChess
                     }
 
                     // Cherche Case Depart et Case Destination
-                    nbMoveFind = BusinessNoir.Process_Noir_Player(lastDep, lastArr, out roque, out cloneActivite);
+                    nbMoveFind = BusinessNoir.Test_Process_Noir_Player(lastDep, lastArr, out roque, out cloneActivite);
 
                     if (nbMoveFind == 1)
                     {
@@ -112,14 +108,6 @@ namespace InterfaceChess
                     }
                     
                 }
-
-                // Time-out atteint. Le coup de l'adversaire n'a jamais été joué (configuré pour 3 min)
-/*
-                if (counter_time >= K.TimeOut)
-                {
-                    items["END"] = 1;
-                }
-*/
             }
 
             items["END"] = 1;
